@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<title>eClicker - Modify Question Set</title>
+
+	<link rel="stylesheet"
+	      href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-beta.2/css/bootstrap.min.css"
+	      integrity="sha256-QUyqZrt5vIjBumoqQV0jM8CgGqscFfdGhN+nVCqX0vc=" crossorigin="anonymous"/>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+	      integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous"/>
+</head>
+
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-2">
+	<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navBar" aria-controls="navBar"
+	        aria-expanded="false" aria-label="Toggle navigation">
+		<span class="navbar-toggler-icon"></span>
+	</button>
+	<div class="collapse navbar-collapse justify-content-md-center" id="navBar">
+		<ul class="navbar-nav">
+			<li class="nav-item active">
+				<a class="nav-link" href="<%= baseUrl %>/question-sets/">Question Sets</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" href="<%= baseUrl %>/question-set/create">New Question Set</a>
+			</li>
+			<li class="nav-item dropdown">
+				<a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true"
+				   aria-expanded="false" id="myAccount">
+					Account
+				</a>
+				<div class="dropdown-menu" aria-labelledby="myAccount">
+					<a class="dropdown-item" href="<%= baseUrl %>/logout">Logout</a>
+				</div>
+			</li>
+		</ul>
+	</div>
+</nav>
+<div class="container mt-4">
+	<main>
+		<div class="row justify-content-center">
+			<div class="col-8">
+				<% if(locals.flash.namingError) { %>
+				<div class="alert alert-danger" role="alert"><b>Rename Error</b> <%= flash.namingError %></div>
+				<% } %>
+				<h3 id="questionSetNameDisplay" class="mb-4">Question Set "<a href="#" id="questionSetName" class="text-dark" data-toggle="tooltip" data-placement="bottom" title="Click to Edit Name"><%= setName %></a>"</h3>
+				<form id="questionSetNameModify" class="mb-4 form-inline" method="post" action="<%= baseUrl %>/question-set/<%= questionSetId %>/modify/setName">
+					<div class="form-group">
+						<h3 class="mb-0 mr-2">Question Set</h3>
+					</div>
+					<div class="form-group mr-2">
+						<input type="text" name="name" class="form-control" placeholder="Set Name" value="<%= setName %>" required>
+					</div>
+					<button type="submit" class="btn btn-primary">Save</button>
+				</form>
+
+				<table class="table table-bordered mt-2">
+					<thead class="thead-light">
+					<tr>
+						<th scope="col" colspan="2">Sessions</th>
+					</tr>
+					</thead>
+					<tbody>
+					<tr>
+						<th scope="row">Total Sessions</th>
+						<td>X</td>
+					</tr>
+					<tr>
+						<th scope="row" class="align-middle">Actions</th>
+						<td>
+							<a class="btn btn-primary" href="#">New Session</a>
+							<a class="btn btn-primary" href="#sessions">Resume Session</a>
+						</td>
+					</tr>
+					</tbody>
+				</table>
+
+				<ul class="list-group mb-4">
+					<li class="list-group-item list-group-item-dark no-sort"><strong>Questions</strong><br /><small>Drag to reorder questions.</small></li>
+					<li class="list-group-item"><i class="fa fa-bars mr-2" aria-hidden="true"></i> Cras justo odio</li>
+					<li class="list-group-item"><i class="fa fa-bars mr-2" aria-hidden="true"></i> Dapibus ac facilisis in</li>
+					<li class="list-group-item"><i class="fa fa-bars mr-2" aria-hidden="true"></i> Morbi leo risus</li>
+					<a href="<%= baseUrl %>/question-set/<%= questionSetId %>/modify/add" class="list-group-item no-sort active"><i class="fa fa-plus-circle mr-1" aria-hidden="true"></i> Add a Question</a>
+				</ul>
+
+
+			</div>
+		</div>
+	</main>
+	<footer class="footer">
+		<div class="row justify-content-center">
+			<div class="col-8">
+				&copy; eClicker 2017.
+			</div>
+		</div>
+	</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"
+        integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.13.0/umd/popper.min.js"
+        integrity="sha256-pS96pU17yq+gVu4KBQJi38VpSuKN7otMrDQprzf/DWY=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-beta.2/js/bootstrap.min.js"
+        integrity="sha256-GIa8Vh3sfESnVB2CN3rYGkD/MklvMq0lmITweQxE1qU=" crossorigin="anonymous"></script>
+<script src="/javascripts/jquery.sortable.min.js"></script>
+<script src="/javascripts/modify.js"></script>
+</body>
+</html>
