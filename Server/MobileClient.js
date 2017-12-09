@@ -33,7 +33,9 @@ class MobileClient {
 						messageType: "DEVICE_JOIN",
 						messageData: {
 							status: "ERROR",
-							statusExtended: "DEVICE_TOKEN_INVALID"
+							statusExtended: {
+								errorReason: "DEVICE_TOKEN_INVALID"
+							}
 						}
 					}));
 					return;
@@ -54,7 +56,9 @@ class MobileClient {
 						messageType: "SESSION_JOIN",
 						messageData: {
 							status: "ERROR",
-							statusExtended: "DEVICE_NOT_IDENTIFIED"
+							statusExtended: {
+								errorReason: "DEVICE_NOT_IDENTIFIED"
+							}
 						}
 					}));
 					return;
@@ -77,6 +81,7 @@ class MobileClient {
 										messageData: {
 											status: "OK",
 											statusExtended: {
+												"authenticationType": "sessionKey",
 												"sessionId": sessionId,
 												"sessionToken": SessionTokenManager.generateSessionToken(sessionId, this.deviceId)
 											}
@@ -87,7 +92,9 @@ class MobileClient {
 										messageType: "SESSION_JOIN",
 										messageData: {
 											status: "ERROR",
-											statusExtended: "AUTHENTICATOR_CODE_EXPIRED"
+											statusExtended: {
+												errorReason: "AUTHENTICATOR_CODE_EXPIRED"
+											}
 										}
 									}));
 								}
@@ -96,7 +103,9 @@ class MobileClient {
 									messageType: "SESSION_JOIN",
 									messageData: {
 										status: "ERROR",
-										statusExtended: "AUTHENTICATOR_CODE_INVALID"
+										statusExtended: {
+											errorReason: "AUTHENTICATOR_CODE_INVALID"
+										}
 									}
 								}));
 							}
@@ -105,7 +114,9 @@ class MobileClient {
 								messageType: "SESSION_JOIN",
 								messageData: {
 									status: "ERROR",
-									statusExtended: "SESSION_EXPIRED"
+									statusExtended: {
+										errorReason: "SESSION_EXPIRED"
+									}
 								}
 							}));
 						}
@@ -121,7 +132,10 @@ class MobileClient {
 									this.websocket.send(JSON.stringify({
 										messageType: "SESSION_JOIN",
 										messageData: {
-											status: "OK"
+											status: "OK",
+											statusExtended: {
+												"authenticationType": "sessionToken"
+											}
 										}
 									}));
 								} else {
@@ -129,7 +143,9 @@ class MobileClient {
 										messageType: "SESSION_JOIN",
 										messageData: {
 											status: "ERROR",
-											statusExtended: "SESSION_EXPIRED"
+											statusExtended: {
+												errorReason: "SESSION_EXPIRED"
+											}
 										}
 									}));
 								}
@@ -138,7 +154,9 @@ class MobileClient {
 									messageType: "SESSION_JOIN",
 									messageData: {
 										status: "ERROR",
-										statusExtended: "AUTHENTICATOR_CODE_INVALID"
+										statusExtended: {
+											errorReason: "AUTHENTICATOR_CODE_INVALID"
+										}
 									}
 								}));
 							}
@@ -147,7 +165,9 @@ class MobileClient {
 								messageType: "SESSION_JOIN",
 								messageData: {
 									status: "ERROR",
-									statusExtended: "AUTHENTICATOR_CODE_INVALID"
+									statusExtended: {
+										errorReason: "AUTHENTICATOR_CODE_INVALID"
+									}
 								}
 							}));
 						}
@@ -158,7 +178,9 @@ class MobileClient {
 							messageType: "SESSION_JOIN",
 							messageData: {
 								status: "ERROR",
-								statusExtended: "UNSUPPORTED_AUTHENTICATION_METHOD"
+								statusExtended: {
+									errorReason: "UNSUPPORTED_AUTHENTICATION_METHOD"
+								}
 							}
 						}));
 						break;
