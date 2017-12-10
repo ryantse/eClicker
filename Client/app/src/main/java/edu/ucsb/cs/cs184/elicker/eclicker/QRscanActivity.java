@@ -49,7 +49,7 @@ public class QRscanActivity extends Activity implements QRCodeReaderView.OnQRCod
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
         authPending = false;
-        sharedPreferences = getPreferences(Context.MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences("eclicker", Context.MODE_PRIVATE);
 
         // initialize deviceId, deviceToken, sessionID, and sessionToken to that stored in sharedPreferences.
         deviceID = sharedPreferences.getString(DEVICE_ID, "");
@@ -160,7 +160,7 @@ public class QRscanActivity extends Activity implements QRCodeReaderView.OnQRCod
         qrCodeReaderView.stopCamera();
     }
 
-    public void registerDevice() {
+    public static void registerDevice() {
         try {
             URL conn = new URL("http://" + ConnectionManager.serverHost + "/mobile/register-device");
             URLConnection yc = conn.openConnection();

@@ -31,11 +31,24 @@ public class WelcomeActivity extends AppCompatActivity implements SessionManager
         permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
         final WelcomeActivity welcomeActivity = this;
         // try to connect using existing session token.
-        ConnectionManager connectionManager = ConnectionManager.getInstance();
+        final ConnectionManager connectionManager = ConnectionManager.getInstance();
         while(!connectionManager.isConnected()) {
             Thread.yield();
         }
-
+        ConnectionManager.MessageListener messageListener = new ConnectionManager.MessageListener() {
+            @Override
+            public void handleMessage(MessageReceived messageReceived) {
+                if (messageReceived.getStatus().equals("OK")) {
+                    System.out.println("OK");
+                } else if (messageReceived.getStatus().equals("ERROR")) {
+                    System.out.println(messageReceived.getErrorMessage());
+                    connectionManager.onMessageOnce(MessageType.DEVICE_JOIN, this);
+                    QRscanActivity.registerDevice();
+                    connectionManager.sendMessage("{\"messageType\":\"DEVICE_JOIN\",\"messageData\":\""
+                            + deviceToken + "\"}");
+                }
+            }
+        };
         connectionManager.onMessageOnce(MessageType.SESSION_JOIN, new ConnectionManager.MessageListener() {
             @Override
             public void handleMessage(MessageReceived messageReceived) {
@@ -56,7 +69,7 @@ public class WelcomeActivity extends AppCompatActivity implements SessionManager
             }
         });
 
-        SharedPreferences sharedPreferences = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences("eclicker", Context.MODE_PRIVATE);
         String savedSessionID = sharedPreferences.getString(SESSION_ID, "");
         String savedSessionToken = sharedPreferences.getString(SESSION_TOKEN, "");
         System.out.println("savedSessionToken:" + savedSessionToken);
