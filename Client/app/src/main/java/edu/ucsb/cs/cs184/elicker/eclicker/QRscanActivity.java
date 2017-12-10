@@ -1,7 +1,8 @@
 package edu.ucsb.cs.cs184.elicker.eclicker;
 
 import android.app.Activity;
-import android.content.Intent;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.PointF;
 import android.os.Bundle;
 import android.widget.TextView;
@@ -18,7 +19,19 @@ public class QRscanActivity extends Activity implements QRCodeReaderView.OnQRCod
 
     private QRCodeReaderView qrCodeReaderView;
     private TextView myQRoutput;
-    private String sessionID;
+    private String curSessionID;
+
+    public static final String DEVICE_ID = "deviceID";
+    public static final String DEVICE_TOKEN = "deviceToken";
+    public static final String SESSION_ID = "sessionID";
+    public static final String SESSION_TOKEN = "sessionToken";
+
+    public String currentDeviceID;
+    public String currentDeviceToken;
+    public String currentSessionID;
+    public String currentSessionToken;
+
+    SharedPreferences sharedPreferences;
 
     private ArrayList<String> ReadQR = new ArrayList<String>(3);
 
@@ -27,8 +40,15 @@ public class QRscanActivity extends Activity implements QRCodeReaderView.OnQRCod
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
 
+        sharedPreferences = getPreferences(Context.MODE_PRIVATE);
+
+        currentDeviceID = sharedPreferences.getString(DEVICE_ID, null);
+        currentDeviceToken = sharedPreferences.getString(DEVICE_TOKEN, null);
+        currentSessionID = sharedPreferences.getString(SESSION_ID, null);
+        currentSessionToken = sharedPreferences.getString(SESSION_TOKEN, null);
+
         // Get the Intent that started this activity and extract the string
-        Intent intent = getIntent();
+        //Intent intent = getIntent();
 
         qrCodeReaderView = (QRCodeReaderView) findViewById(R.id.qrdecoderview);
         myQRoutput = findViewById(R.id.instructionText);
@@ -56,7 +76,7 @@ public class QRscanActivity extends Activity implements QRCodeReaderView.OnQRCod
         //myQRoutput.setText(text);
         //System.out.println(text);
         String[] parsed = text.split(":");
-        sessionID = parsed[0];
+        curSessionID = parsed[0];
         checkThrowAway();
 
         if(ReadQR.size() == 3){
@@ -67,17 +87,17 @@ public class QRscanActivity extends Activity implements QRCodeReaderView.OnQRCod
         }
         ReadQR.add(parsed[1]);
         if(ReadQR.size() == 3){
-            
+
         }
 
     }
 
     public void checkThrowAway() {
         if(ReadQR.isEmpty()){
-            ReadQR.add(sessionID);
-        }else if(ReadQR.get(0) != sessionID){
+            ReadQR.add(curSessionID);
+        }else if(ReadQR.get(0) != curSessionID){
             ReadQR.clear();
-            ReadQR.add(sessionID);
+            ReadQR.add(curSessionID);
         }
     }
 
