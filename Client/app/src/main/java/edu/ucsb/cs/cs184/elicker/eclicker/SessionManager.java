@@ -1,10 +1,16 @@
 package edu.ucsb.cs.cs184.elicker.eclicker;
+import android.content.Context;
+import android.content.SharedPreferences;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONStringer;
 
 import java.sql.Connection;
+
+import static edu.ucsb.cs.cs184.elicker.eclicker.QRscanActivity.SESSION_ID;
+import static edu.ucsb.cs.cs184.elicker.eclicker.QRscanActivity.SESSION_TOKEN;
 
 public class SessionManager {
     private static Session session = null;
@@ -41,6 +47,14 @@ public class SessionManager {
                     SessionManager.session = new Session();
                     SessionManager.session.sessionId = messageReceived.getSessionId();
                     SessionManager.session.sessionToken = messageReceived.getSessionToken();
+
+                    QRscanActivity.sessionToken = messageReceived.getSessionToken();
+                    QRscanActivity.sessionID = messageReceived.getSessionId();
+                    SharedPreferences.Editor prefEditor = QRscanActivity.sharedPreferences.edit();
+                    prefEditor.putString(SESSION_ID, QRscanActivity.sessionID);
+                    prefEditor.putString(SESSION_TOKEN, QRscanActivity.sessionToken);
+                    prefEditor.commit();
+
                     callback.onJoinSuccess();
                 } else if (messageReceived.getStatus().equals("ERROR")) {
                     System.out.println(messageReceived.getErrorMessage());

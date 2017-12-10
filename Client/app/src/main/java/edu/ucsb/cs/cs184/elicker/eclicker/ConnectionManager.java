@@ -8,14 +8,15 @@ import java.util.*;
 
 public class ConnectionManager {
     private static ConnectionManager connectionManager = null;
-    final static String serverHost = "10.0.0.89:3000";
+    final static String serverHost = "10.0.0.96:3000";
     private final WebSocket webSocket;
+    private boolean isConnected = false;
     private final HashMap<MessageType, ArrayList<MessageListenerContainer>> messageListeners;
 
     private ConnectionManager() {
         try {
             this.webSocket = new WebSocketFactory().createSocket(new URI("ws://" + serverHost + "/mobile/session"), 5000);
-            this.webSocket.connect();
+            this.webSocket.connectAsynchronously();
             this.webSocket.addListener(new WebSocketListener(this));
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -33,6 +34,14 @@ public class ConnectionManager {
         }
 
         return connectionManager;
+    }
+
+    public void onConnected() {
+        this.isConnected = true;
+    }
+
+    public boolean isConnected() {
+        return this.isConnected;
     }
 
     public void onTextMessage(String strJson) throws JSONException {
@@ -58,6 +67,7 @@ public class ConnectionManager {
     }
 
     public void sendMessage(String message) {
+        System.out.println(message);
         this.webSocket.sendText(message);
     }
 
@@ -87,6 +97,12 @@ public class ConnectionManager {
         @Override
         public void onTextMessage(WebSocket websocket, String text) throws Exception {
             connectionManager.onTextMessage(text);
+        }
+
+        @Override
+        public void onConnected(WebSocket websocket, Map<String, List<String>> headers) throws Exception {
+            super.onConnected(websocket, headers);
+            connectionManager.onConnected();
         }
     }
 

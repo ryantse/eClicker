@@ -50,7 +50,7 @@ public class Main implements SessionManager.SessionJoinCallback {
         String key1 = "771";
         String key2 = "afe";
         String sessionId = "0B026725";
-        SessionManager.createSessionWithKeys(key1, key2, sessionId, this);
+        //SessionManager.createSessionWithKeys(key1, key2, sessionId, this);
 
 //        clientEndPoint.sendMessage();
 
