@@ -51,40 +51,49 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <RadioButton
-                android:id="@+id/answerAbutton"
+            <RadioGroup
+                android:id="@+id/radioGroup2"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="1"
-                android:text="2 - 1" />
+                android:layout_weight="1" >
 
-            <RadioButton
-                android:id="@+id/answerBbutton"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:text="3 / 1" />
+                <RadioButton
+                    android:id="@+id/answerAbutton"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:text="2 - 1" />
 
-            <RadioButton
-                android:id="@+id/answerCbutton"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:text="2 * 1" />
+                <RadioButton
+                    android:id="@+id/answerBbutton"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:text="3 / 1" />
 
-            <RadioButton
-                android:id="@+id/answerDbutton"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:text="1 + 1" />
+                <RadioButton
+                    android:id="@+id/answerCbutton"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:text="2 * 1" />
 
-            <RadioButton
-                android:id="@+id/answerEbutton"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:text="5" />
+                <RadioButton
+                    android:id="@+id/answerDbutton"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:text="1 + 1" />
+
+                <RadioButton
+                    android:id="@+id/answerEbutton"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:text="5" />
+
+            </RadioGroup>
+
         </LinearLayout>
     </ScrollView>
 
