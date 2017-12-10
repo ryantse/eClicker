@@ -32,6 +32,7 @@ public class WelcomeActivity extends AppCompatActivity {
                     // Since we successfully joined a session, then we should move to the waiting screen.
                     Intent intent = new Intent(WelcomeActivity.this.getApplicationContext(), WaitingActivity.class);
                     WelcomeActivity.this.startActivity(intent);
+                    WelcomeActivity.this.finish();
                 }
 
                 @Override
@@ -40,6 +41,7 @@ public class WelcomeActivity extends AppCompatActivity {
 
                     Intent intent = new Intent(WelcomeActivity.this.getApplicationContext(), QRscanActivity.class);
                     WelcomeActivity.this.startActivity(intent);
+                    WelcomeActivity.this.finish();
                 }
             };
 
@@ -54,6 +56,7 @@ public class WelcomeActivity extends AppCompatActivity {
                     } else {
                         Intent intent = new Intent(WelcomeActivity.this.getApplicationContext(), QRscanActivity.class);
                         WelcomeActivity.this.startActivity(intent);
+                        WelcomeActivity.this.finish();
                     }
                 }
 
@@ -84,6 +87,7 @@ public class WelcomeActivity extends AppCompatActivity {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     Intent intent = new Intent(this.getApplicationContext(), WelcomeActivity.class);
                     startActivity(intent);
+                    this.finish();
                 }
                 return;
             }
