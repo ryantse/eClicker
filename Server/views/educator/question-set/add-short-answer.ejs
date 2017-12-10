@@ -3,11 +3,13 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<title>eClicker - New Question Set</title>
+	<title>eClicker - New Short Answer Question</title>
 
 	<link rel="stylesheet"
 	      href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-beta.2/css/bootstrap.min.css"
 	      integrity="sha256-QUyqZrt5vIjBumoqQV0jM8CgGqscFfdGhN+nVCqX0vc=" crossorigin="anonymous"/>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+	      integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous"/>
 </head>
 
 <body>
@@ -18,10 +20,10 @@
 	</button>
 	<div class="collapse navbar-collapse justify-content-md-center" id="navBar">
 		<ul class="navbar-nav">
-			<li class="nav-item">
+			<li class="nav-item active">
 				<a class="nav-link" href="<%= baseUrl %>/question-sets/">Question Sets</a>
 			</li>
-			<li class="nav-item active">
+			<li class="nav-item">
 				<a class="nav-link" href="<%= baseUrl %>/question-set/create">New Question Set</a>
 			</li>
 			<li class="nav-item dropdown">
@@ -40,18 +42,16 @@
 	<main>
 		<div class="row justify-content-center">
 			<div class="col-8">
-				<h3>New Question Set</h3>
-				<p>To create a new question set, begin by specifying a name for the question set.</p>
-				<% if(locals.flash.namingError) { %>
-				<div class="alert alert-danger" role="alert"><b>Question Set Error</b> <%= flash.namingError %></div>
-				<% } %>
+				<h3>New Short Answer Question</h3>
+				<div id="submitError"></div>
 
-				<form class="mb-4" method="post">
+				<form class="mb-4">
 					<div class="form-group">
-						<label for="questionSetName" class="sr-only">Name</label>
-						<input type="text" class="form-control" name="questionSetName" id="questionSetName" placeholder="Question Set Name" required>
+						<label for="questionTextarea">Question</label>
+						<textarea class="form-control" id="questionTextarea" rows="3"></textarea>
 					</div>
-					<button class="btn btn-primary btn-lg btn-block" type="submit">Create Question Set</button>
+					<input type="hidden" id="submitTarget" value="<%= baseUrl %>/question-set/<%= questionSetId %>/modify/add/question" />
+					<button class="btn btn-primary btn-lg btn-block" type="button" id="addQuestion">Add Question</button>
 				</form>
 			</div>
 		</div>
@@ -71,5 +71,6 @@
         integrity="sha256-pS96pU17yq+gVu4KBQJi38VpSuKN7otMrDQprzf/DWY=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-beta.2/js/bootstrap.min.js"
         integrity="sha256-GIa8Vh3sfESnVB2CN3rYGkD/MklvMq0lmITweQxE1qU=" crossorigin="anonymous"></script>
+<script src="/javascripts/add_short_answer.js"></script>
 </body>
 </html>

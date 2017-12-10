@@ -45,7 +45,9 @@ class SessionManager {
 	}
 
 	addSessionClient(client) {
-		this.sessionClients.push(client);
+		if(this.sessionClients.indexOf(client) < 0) {
+			this.sessionClients.push(client);
+		}
 	}
 
 	removeSessionClient(client) {

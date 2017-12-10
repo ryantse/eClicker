@@ -24,10 +24,15 @@ class MobileClient {
 	onMessage(message) {
 		console.log(message);
 
-		message = JSON.parse(message);
+		try {
+			message = JSON.parse(message);
+		} catch (error) {
+			return;
+		}
+
 		switch(message.messageType) {
 			case "DEVICE_JOIN":
-				let deviceId = DeviceTokenManager.retrieveDeviceId(message.messageData);
+				let deviceId = DeviceTokenManager.retrieveDeviceId(message.messageData.deviceToken);
 				if(deviceId == null) {
 					this.websocket.send(JSON.stringify({
 						messageType: "DEVICE_JOIN",
@@ -134,7 +139,9 @@ class MobileClient {
 										messageData: {
 											status: "OK",
 											statusExtended: {
-												"authenticationType": "sessionToken"
+												"authenticationType": "sessionToken",
+												"sessionId": sessionData.sessionId,
+												"sessionToken": message.messageData.sessionToken
 											}
 										}
 									}));

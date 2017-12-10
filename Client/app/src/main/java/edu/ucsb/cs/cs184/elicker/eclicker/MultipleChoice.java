@@ -77,15 +77,15 @@ public class MultipleChoice extends Activity {
 
         int selectedID = radioGroup.getCheckedRadioButtonId();
 
-        if(selectedID == aID){
+        if (selectedID == aID) {
             outputLetter = "a";
-        }else if(selectedID == bID){
+        } else if (selectedID == bID) {
             outputLetter = "b";
-        }else if(selectedID == cID){
+        } else if (selectedID == cID) {
             outputLetter = "c";
-        }else if(selectedID == dID){
+        } else if (selectedID == dID) {
             outputLetter = "d";
-        }else if(selectedID == eID){
+        } else if (selectedID == eID) {
             outputLetter = "e";
         }
 

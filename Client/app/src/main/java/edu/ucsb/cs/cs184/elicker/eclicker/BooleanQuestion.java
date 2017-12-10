@@ -46,9 +46,9 @@ public class BooleanQuestion extends Activity {
 
         int selectedID = radioGroup.getCheckedRadioButtonId();
 
-        if(selectedID == trueID){
+        if (selectedID == trueID) {
             outputBool = true;
-        }else if(selectedID == falseID){
+        } else if (selectedID == falseID) {
             outputBool = false;
         }
 

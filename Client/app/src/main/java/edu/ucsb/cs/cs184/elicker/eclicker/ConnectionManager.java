@@ -1,17 +1,26 @@
 package edu.ucsb.cs.cs184.elicker.eclicker;
-import com.neovisionaries.ws.client.*;
+
+import com.neovisionaries.ws.client.WebSocket;
+import com.neovisionaries.ws.client.WebSocketAdapter;
+import com.neovisionaries.ws.client.WebSocketException;
+import com.neovisionaries.ws.client.WebSocketFactory;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class ConnectionManager {
+    final static String serverHost = "10.0.0.52:3000";
     private static ConnectionManager connectionManager = null;
-    final static String serverHost = "10.0.0.96:3000";
     private final WebSocket webSocket;
-    private boolean isConnected = false;
     private final HashMap<MessageType, ArrayList<MessageListenerContainer>> messageListeners;
+    private boolean isConnected = false;
 
     private ConnectionManager() {
         try {
@@ -29,7 +38,7 @@ public class ConnectionManager {
     }
 
     public static ConnectionManager getInstance() {
-        if(connectionManager == null) {
+        if (connectionManager == null) {
             connectionManager = new ConnectionManager();
         }
 
@@ -44,15 +53,28 @@ public class ConnectionManager {
         return this.isConnected;
     }
 
-    public void onTextMessage(String strJson) throws JSONException {
-        MessageReceived messageReceived = new MessageReceived(strJson);
-        Iterator<MessageListenerContainer> messageListenerContainerIterator = messageListeners.get(messageReceived.getMessageType()).iterator();
-        while(messageListenerContainerIterator.hasNext()) {
+    public void onTextMessage(String text) {
+        MessageType messageType;
+        String messageTypeString;
+        JSONObject messageData;
+
+        try {
+            JSONObject jsonObject = new JSONObject(text);
+            messageTypeString = jsonObject.getString("messageType");
+            messageData = jsonObject.getJSONObject("messageData");
+            messageType = MessageType.valueOf(messageTypeString);
+        } catch (IllegalArgumentException | NullPointerException | JSONException exception) {
+            System.err.printf("Error processing message %s.\n", text);
+            return;
+        }
+
+        Iterator<MessageListenerContainer> messageListenerContainerIterator = messageListeners.get(messageType).iterator();
+
+        while (messageListenerContainerIterator.hasNext()) {
             MessageListenerContainer messageListenerContainer = messageListenerContainerIterator.next();
+            messageListenerContainer.messageListener.handleMessage(messageData);
 
-            messageListenerContainer.messageListener.handleMessage(messageReceived);
-
-            if(messageListenerContainer.listenerType == MessageListenerType.ONCE) {
+            if (messageListenerContainer.listenerType == MessageListenerType.ONCE) {
                 messageListenerContainerIterator.remove();
             }
         }
@@ -66,13 +88,23 @@ public class ConnectionManager {
         messageListeners.get(messageType).add(new MessageListenerContainer(MessageListenerType.ONCE, listener));
     }
 
-    public void sendMessage(String message) {
-        System.out.println(message);
-        this.webSocket.sendText(message);
+    public void sendMessage(MessageType messageType, JSONObject messageData) {
+        try {
+            JSONObject message = new JSONObject();
+            message.put("messageType", messageType.toString());
+            message.put("messageData", messageData);
+            this.webSocket.sendText(message.toString());
+        } catch (JSONException exception) {
+            System.err.printf("Failed to send message %s.\n", messageType.toString());
+        }
     }
 
+    enum MessageListenerType {ONCE, ALWAYS}
+
+    enum MessageType {DEVICE_JOIN, SESSION_JOIN, QUESTION_BEGIN}
+
     public interface MessageListener {
-        void handleMessage(MessageReceived messageReceived);
+        void handleMessage(JSONObject messageData);
     }
 
     private class MessageListenerContainer {
@@ -95,6 +127,12 @@ public class ConnectionManager {
         }
 
         @Override
+        public void onConnectError(WebSocket websocket, WebSocketException exception) throws Exception {
+            super.onConnectError(websocket, exception);
+            System.err.println(exception);
+        }
+
+        @Override
         public void onTextMessage(WebSocket websocket, String text) throws Exception {
             connectionManager.onTextMessage(text);
         }
@@ -105,6 +143,4 @@ public class ConnectionManager {
             connectionManager.onConnected();
         }
     }
-
-    enum MessageListenerType {ONCE, ALWAYS};
 }

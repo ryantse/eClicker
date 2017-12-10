@@ -11,7 +11,8 @@ const jwt = require('jsonwebtoken');
 const KeyManager = require('../KeyManager');
 
 const AdminUsers = require('../AdminUsers');
-const database = require('promise-mysql').createPool({
+const MySQL = require('sync-mysql');
+const database = new MySQL({
 	host: '138.68.25.144',
 	user: 'eclicker',
 	password: 'xnUe3jytAtsd6rsh3kiEjTtAiahoMtLRNHDzmas3TvvjJz3ftdpQEHrvtTptbfLa',
@@ -76,41 +77,34 @@ router.get('/', authenticationRequired, function(req, res) {
 	res.redirect(req.baseUrl + '/question-sets')
 });
 
-router.get('/question-sets', authenticationRequired, function(req, res) {
-	let connection;
+router.get('/question-sets', authenticationRequired, function(req, res, next) {
+	try {
+		let databaseResult = database.query("SELECT questionset_id, questionset_name FROM question_set WHERE questionset_owner = ?", [req.user]);
 
-	database.getConnection().then(function(conn) {
-		connection = conn;
-		return connection.query("SELECT questionset_id, questionset_name FROM question_set WHERE questionset_owner = ?", [req.user]);
-	}).then(function(results) {
-		let questionsets = [];
-		results.forEach(function(result) {
-			questionsets.push({
+		let question_sets = [];
+		databaseResult.forEach(function(result) {
+			question_sets.push({
 				id: result.questionset_id,
 				name: result.questionset_name
 			});
 		});
-		res.render('educator/question-sets', {baseUrl: req.baseUrl, question_sets: questionsets});
-	}).catch(function(error) {
+
+		res.render('educator/question-sets', {"baseUrl": req.baseUrl, "question_sets": question_sets});
+	} catch (error) {
 		console.log(error);
-	}).finally(function() {
-		if (connection && connection.release) connection.release();
-	});
+		next(error);
+	}
 });
 
 router.get('/question-set/create', authenticationRequired, function(req, res) {
-	res.render('educator/question-set/create', {baseUrl: req.baseUrl});
+	res.render('educator/question-set/create', {"baseUrl": req.baseUrl});
 });
 
 router.post('/question-set/create', authenticationRequired, function(req, res) {
-	let connection;
-
-	database.getConnection().then(function(conn) {
-		connection = conn;
-		return connection.query("INSERT INTO question_set (questionset_name, questionset_owner) VALUES (?, ?)", [req.body.questionSetName, req.user]);
-	}).then(function(result) {
-		res.redirect(req.baseUrl + "/question-set/" + result.insertId + "/modify");
-	}).catch(function(error) {
+	try {
+		let databaseResult = database.query("INSERT INTO question_set (questionset_name, questionset_owner) VALUES (?, ?)", [req.body.questionSetName, req.user]);
+		res.redirect(req.baseUrl + "/question-set/" + databaseResult.insertId + "/modify");
+	} catch (error) {
 		console.log(error);
 		if(error.code) {
 			switch(error.code) {
@@ -128,18 +122,13 @@ router.post('/question-set/create', authenticationRequired, function(req, res) {
 			}
 		}
 		res.redirect(req.baseUrl + "/question-set/create");
-	}).finally(function() {
-		if (connection && connection.release) connection.release();
-	});
+	}
 });
 
-router.get('/question-set/:questionSetId/modify', authenticationRequired, function(req, res) {
-	var connection;
-	database.getConnection().then(function(conn) {
-		connection = conn;
-		return connection.query("SELECT questionset_name FROM question_set WHERE questionset_id = ?", [req.params["questionSetId"]]);
-	}).then(function(result) {
-		if(result.length == 0) {
+router.get('/question-set/:questionSetId/modify', authenticationRequired, function(req, res, next) {
+	try {
+		let databaseResult = database.query("SELECT questionset_name, questionset_owner FROM question_set WHERE questionset_id = ?", [req.params["questionSetId"]]);
+		if(databaseResult.length == 0 || databaseResult[0].questionset_owner != req.user) {
 			let error = new Error('Unable to find question set.');
 			error.status = 404;
 			next(error);
@@ -147,22 +136,17 @@ router.get('/question-set/:questionSetId/modify', authenticationRequired, functi
 			return;
 		}
 
-		res.render('educator/question-set/modify', {baseUrl: req.baseUrl, questionSetId: req.params["questionSetId"], setName: result[0].questionset_name});
-	}).catch(function(error) {
+		res.render('educator/question-set/modify', {"baseUrl": req.baseUrl, "questionSetId": req.params["questionSetId"], "setName": databaseResult[0].questionset_name});
+	} catch (error) {
 		console.log(error);
-		res.send({status: "ERROR"});
-	}).finally(function() {
-		if (connection && connection.release) connection.release();
-	});
+		next(error);
+	}
 });
 
-router.get('/question-set/:questionSetId/modify/add', authenticationRequired, function(req, res) {
-	var connection;
-	database.getConnection().then(function(conn) {
-		connection = conn;
-		return connection.query("SELECT questionset_name FROM question_set WHERE questionset_id = ?", [req.params["questionSetId"]]);
-	}).then(function(result) {
-		if(result.length == 0) {
+router.post('/question-set/:questionSetId/modify/getQuestions', authenticationRequired, function(req, res, next) {
+	try {
+		let databaseResult = database.query("SELECT questionset_name, questionset_owner, questionset_order FROM question_set WHERE questionset_id = ?", [req.params["questionSetId"]]);
+		if(databaseResult.length == 0 || databaseResult[0].questionset_owner != req.user) {
 			let error = new Error('Unable to find question set.');
 			error.status = 404;
 			next(error);
@@ -170,22 +154,315 @@ router.get('/question-set/:questionSetId/modify/add', authenticationRequired, fu
 			return;
 		}
 
-		res.render('educator/question-set/add', {baseUrl: req.baseUrl, questionSetId: req.params["questionSetId"], setName: result[0].questionset_name});
-	}).catch(function(error) {
+		let questionSetOrder = [];
+		try {
+			questionSetOrder = JSON.parse(databaseResult[0].questionset_order);
+			if(questionSetOrder == null) {
+				questionSetOrder = [];
+			}
+		} catch (error) {}
+
+		let results = {};
+		let unprocessedKeys = [];
+		databaseResult = database.query("SELECT question_id, question_title FROM question WHERE question_set = ?", [req.params["questionSetId"]]);
+		databaseResult.forEach(function(result) {
+			unprocessedKeys.push(result.question_id);
+			results[result.question_id] = result.question_title;
+		});
+
+		let resultData = [];
+		for(let i = 0; i < questionSetOrder.length; ++i) {
+			if(results[questionSetOrder[i]] != undefined) {
+				resultData.push({
+					id: questionSetOrder[i],
+					title: results[questionSetOrder[i]]
+				});
+				unprocessedKeys.splice(unprocessedKeys.indexOf(questionSetOrder[i]), 1);
+			}
+		}
+
+		for(let i = 0; i < unprocessedKeys.length; ++i) {
+			resultData.push({
+				id: unprocessedKeys[i],
+				title: results[unprocessedKeys[i]]
+			});
+		}
+
+		res.send(resultData);
+	} catch (error) {
 		console.log(error);
-		res.send({status: "ERROR"});
-	}).finally(function() {
-		if (connection && connection.release) connection.release();
-	});
+		next(error);
+	}
+});
+
+router.post('/question-set/:questionSetId/modify/setQuestionOrder', authenticationRequired, function(req, res) {
+	try {
+		let databaseResult = database.query("SELECT questionset_owner FROM question_set WHERE questionset_id = ?", [req.params["questionSetId"]]);
+		if(databaseResult.length == 0 || databaseResult[0].questionset_owner != req.user) {
+			let error = new Error('Unable to find question set.');
+			error.status = 404;
+			next(error);
+
+			return;
+		}
+
+		database.query("UPDATE question_set SET questionset_order = ? WHERE questionset_id = ?", [req.body.question_order, req.params["questionSetId"]]);
+		res.send({"status": "OK"});
+		return;
+	} catch (error) {
+		console.log(error);
+	}
+
+	req.flash("questionError", "An internal error occurred. Please try again.");
+	res.send({"status": "ERROR"});
+});
+
+router.post('/question-set/:questionSetId/modify/deleteQuestion', authenticationRequired, function(req, res) {
+	try {
+		let databaseResult = database.query("SELECT questionset_owner FROM question_set WHERE questionset_id = ?", [req.params["questionSetId"]]);
+		if(databaseResult.length == 0 || databaseResult[0].questionset_owner != req.user) {
+			let error = new Error('Unable to find question set.');
+			error.status = 404;
+			next(error);
+
+			return;
+		}
+
+		database.query("DELETE FROM question WHERE question_id = ? AND question_set = ?", [req.body.question_id, req.params["questionSetId"]]);
+		res.send({"status": "OK"});
+		return;
+	} catch (error) {
+		console.log(error);
+	}
+
+	req.flash("questionError", "An internal error occurred. Please try again.");
+	res.send({"status": "ERROR"});
+});
+
+router.get('/question-set/:questionSetId/modify/edit/:questionId', authenticationRequired, function(req, res, next) {
+	try {
+		let databaseResult = database.query("SELECT questionset_owner FROM question_set WHERE questionset_id = ?", [req.params["questionSetId"]]);
+		if(databaseResult.length == 0 || databaseResult[0].questionset_owner != req.user) {
+			let error = new Error('Unable to find question set.');
+			error.status = 404;
+			next(error);
+
+			return;
+		}
+
+		databaseResult = database.query("SELECT question_type FROM question WHERE question_id = ? AND question_set = ?", [req.params["questionId"], req.params["questionSetId"]]);
+		if(databaseResult.length == 0) {
+			let error = new Error('Unable to find question.');
+			error.status = 404;
+			next(error);
+
+			return;
+		}
+
+		switch(databaseResult[0].question_type) {
+			case "MultipleChoice":
+				res.render('educator/question-set/edit-multiple-choice', {"baseUrl": req.baseUrl, "questionSetId": req.params["questionSetId"], "questionId": req.params["questionId"]});
+				break;
+			case "RankedChoice":
+				res.render('educator/question-set/edit-ranked-choice', {"baseUrl": req.baseUrl, "questionSetId": req.params["questionSetId"], "questionId": req.params["questionId"]});
+				break;
+			case "ShortAnswer":
+				res.render('educator/question-set/edit-short-answer', {"baseUrl": req.baseUrl, "questionSetId": req.params["questionSetId"], "questionId": req.params["questionId"]});
+				break;
+			case "BooleanAnswer":
+				res.render('educator/question-set/edit-boolean-answer', {"baseUrl": req.baseUrl, "questionSetId": req.params["questionSetId"], "questionId": req.params["questionId"]});
+				break;
+		}
+	} catch (error) {
+		console.log(error);
+		next(error);
+	}
+});
+
+router.get('/question-set/:questionSetId/modify/edit/:questionId/data', authenticationRequired, function(req, res, next) {
+	try {
+		let databaseResult = database.query("SELECT questionset_owner FROM question_set WHERE questionset_id = ?", [req.params["questionSetId"]]);
+		if(databaseResult.length == 0 || databaseResult[0].questionset_owner != req.user) {
+			let error = new Error('Unable to find question set.');
+			error.status = 404;
+			next(error);
+
+			return;
+		}
+
+		databaseResult = database.query("SELECT question_title, question_data FROM question WHERE question_id = ? AND question_set = ?", [req.params["questionId"], req.params["questionSetId"]]);
+		if(databaseResult.length == 0) {
+			let error = new Error('Unable to find question.');
+			error.status = 404;
+			next(error);
+
+			return;
+		}
+
+		res.send({
+			question_title: databaseResult[0].question_title,
+			question_data: JSON.parse(databaseResult[0].question_data)
+		});
+	} catch (error) {
+		console.log(error);
+		next(error);
+	}
+});
+
+router.post('/question-set/:questionSetId/modify/edit/:questionId/modify', authenticationRequired, function(req, res, next) {
+	try {
+		let databaseResult = database.query("SELECT questionset_owner FROM question_set WHERE questionset_id = ?", [req.params["questionSetId"]]);
+		if(databaseResult.length == 0 || databaseResult[0].questionset_owner != req.user) {
+			let error = new Error('Unable to find question set.');
+			error.status = 404;
+			next(error);
+
+			return;
+		}
+
+		databaseResult = database.query("UPDATE question SET question_title = ?, question_data = ? WHERE question_id = ? AND question_set = ?", [req.body.question_title, req.body.question_data, req.params["questionId"], req.params["questionSetId"]]);
+
+		res.send({
+			status: "OK",
+			redirectTo: req.baseUrl + '/question-set/' + req.params["questionSetId"] + "/modify"
+		});
+	} catch (error) {
+		console.log(error);
+		next(error);
+	}
+});
+
+router.get('/question-set/:questionSetId/modify/add', authenticationRequired, function(req, res, next) {
+	try {
+		let databaseResult = database.query("SELECT questionset_name, questionset_owner FROM question_set WHERE questionset_id = ?", [req.params["questionSetId"]]);
+		if(databaseResult.length == 0 || databaseResult[0].questionset_owner != req.user) {
+			let error = new Error('Unable to find question set.');
+			error.status = 404;
+			next(error);
+
+			return;
+		}
+
+		res.render('educator/question-set/add', {"baseUrl": req.baseUrl, "questionSetId": req.params["questionSetId"], "setName": databaseResult[0].questionset_name});
+	} catch (error) {
+		console.log(error);
+		next(error);
+	}
+});
+
+router.get('/question-set/:questionSetId/modify/add/multiple-choice', authenticationRequired, function(req, res, next) {
+	try {
+		let databaseResult = database.query("SELECT questionset_name, questionset_owner FROM question_set WHERE questionset_id = ?", [req.params["questionSetId"]]);
+		if(databaseResult.length == 0 || databaseResult[0].questionset_owner != req.user) {
+			let error = new Error('Unable to find question set.');
+			error.status = 404;
+			next(error);
+
+			return;
+		}
+
+		res.render('educator/question-set/add-multiple-choice', {"baseUrl": req.baseUrl, "questionSetId": req.params["questionSetId"], "setName": databaseResult[0].questionset_name});
+	} catch (error) {
+		console.log(error);
+		next(error);
+	}
+});
+
+router.get('/question-set/:questionSetId/modify/add/short-answer', authenticationRequired, function(req, res, next) {
+	try {
+		let databaseResult = database.query("SELECT questionset_name, questionset_owner FROM question_set WHERE questionset_id = ?", [req.params["questionSetId"]]);
+		if(databaseResult.length == 0 || databaseResult[0].questionset_owner != req.user) {
+			let error = new Error('Unable to find question set.');
+			error.status = 404;
+			next(error);
+
+			return;
+		}
+
+		res.render('educator/question-set/add-short-answer', {"baseUrl": req.baseUrl, "questionSetId": req.params["questionSetId"], "setName": databaseResult[0].questionset_name});
+	} catch (error) {
+		console.log(error);
+		next(error);
+	}
+});
+
+router.get('/question-set/:questionSetId/modify/add/ranked-choice', authenticationRequired, function(req, res, next) {
+	try {
+		let databaseResult = database.query("SELECT questionset_name, questionset_owner FROM question_set WHERE questionset_id = ?", [req.params["questionSetId"]]);
+		if(databaseResult.length == 0 || databaseResult[0].questionset_owner != req.user) {
+			let error = new Error('Unable to find question set.');
+			error.status = 404;
+			next(error);
+
+			return;
+		}
+
+		res.render('educator/question-set/add-ranked-choice', {"baseUrl": req.baseUrl, "questionSetId": req.params["questionSetId"], "setName": databaseResult[0].questionset_name});
+	} catch (error) {
+		console.log(error);
+		next(error);
+	}
+});
+
+router.get('/question-set/:questionSetId/modify/add/boolean-answer', authenticationRequired, function(req, res, next) {
+	try {
+		let databaseResult = database.query("SELECT questionset_name, questionset_owner FROM question_set WHERE questionset_id = ?", [req.params["questionSetId"]]);
+		if(databaseResult.length == 0 || databaseResult[0].questionset_owner != req.user) {
+			let error = new Error('Unable to find question set.');
+			error.status = 404;
+			next(error);
+
+			return;
+		}
+
+		res.render('educator/question-set/add-boolean-answer', {"baseUrl": req.baseUrl, "questionSetId": req.params["questionSetId"], "setName": databaseResult[0].questionset_name});
+	} catch (error) {
+		console.log(error);
+		next(error);
+	}
+});
+
+router.post('/question-set/:questionSetId/modify/add/question', authenticationRequired, function(req, res, next) {
+	let result = {
+		"status": "ERROR"
+	};
+
+	// Check question type.
+	const permittedQuestionTypes = ["MultipleChoice", "BooleanAnswer", "RankedChoice", "ShortAnswer"];
+	if(permittedQuestionTypes.indexOf(req.body.question_type) < 0) {
+		result["statusExtended"] = "An internal error occurred. Please try again.";
+		res.send(result);
+		return;
+	}
+
+	if(req.body["question_title"] === undefined || req.body.question_title.trim().length == 0) {
+		result["statusExtended"] = "Please specify a title for this question.";
+		res.send(result);
+		return;
+	}
+
+	try {
+		let databaseResult = database.query("SELECT questionset_name, questionset_owner FROM question_set WHERE questionset_id = ?", [req.params["questionSetId"]]);
+		if(databaseResult.length == 0 || databaseResult[0].questionset_owner != req.user)  {
+			result["statusExtended"] = "An internal error occurred. Please try again.";
+			res.send(result);
+			return;
+		}
+
+		database.query("INSERT INTO question (question_set, question_type, question_title, question_data) VALUES (?, ?, ?, ?)", [req.params["questionSetId"], req.body.question_type, req.body.question_title, req.body.question_data]);
+		result["status"] = "OK";
+		result["redirectTo"] = req.baseUrl + '/question-set/' + req.params["questionSetId"] + "/modify";
+		res.send(result);
+	} catch (error) {
+		console.log(error);
+		next(error);
+	}
 });
 
 router.post('/question-set/:questionSetId/modify/setName', authenticationRequired, function(req, res) {
-	var connection;
-	database.getConnection().then(function(conn) {
-		connection = conn;
-		return connection.query("UPDATE question_set SET questionset_name = ? WHERE questionset_id = ?", [req.body.name, req.params["questionSetId"]]);
-	}).then(function(result) {
-		if(result.affectedRows == 0) {
+	try {
+		let databaseResult = database.query("SELECT questionset_name, questionset_owner, questionset_order FROM question_set WHERE questionset_id = ?", [req.params["questionSetId"]]);
+		if(databaseResult.length == 0 || databaseResult[0].questionset_owner != req.user) {
 			let error = new Error('Unable to find question set.');
 			error.status = 404;
 			next(error);
@@ -193,8 +470,8 @@ router.post('/question-set/:questionSetId/modify/setName', authenticationRequire
 			return;
 		}
 
-		res.redirect(req.baseUrl + '/question-set/' + req.params["questionSetId"] + "/modify");
-	}).catch(function(error) {
+		database.query("UPDATE question_set SET questionset_name = ? WHERE questionset_id = ?", [req.body.name, req.params["questionSetId"]]);
+	} catch (error) {
 		console.log(error);
 		if(error.code) {
 			switch(error.code) {
@@ -211,37 +488,27 @@ router.post('/question-set/:questionSetId/modify/setName', authenticationRequire
 					break;
 			}
 		}
-		res.redirect(req.baseUrl + '/question-set/' + req.params["questionSetId"] + "/modify");
-	}).finally(function() {
-		if (connection && connection.release) connection.release();
-	});
+	}
+
+	res.redirect(req.baseUrl + '/question-set/' + req.params["questionSetId"] + "/modify");
 });
 
 router.get('/question-set/:questionSetId/create-session', authenticationRequired, function(req, res) {
 	const sessionId = crypto.randomBytes(4).toString("hex").slice(0, 7);
 
-	var connection;
-	database.getConnection().then(function(conn) {
-		connection = conn;
-		return connection.query("INSERT INTO session (session_id, session_owner, session_questionset) VALUES (?, ?, ?)", [sessionId, req.user, req.params["questionSetId"]]);
-	}).then(function(result) {
+	try {
+		database.query("INSERT INTO session (session_id, session_owner, session_questionset) VALUES (?, ?, ?)", [sessionId, req.user, req.params["questionSetId"]]);
 		res.redirect(req.baseUrl + "/session/" + sessionId);
-	}).catch(function(error) {
+	} catch (error) {
 		console.log(error);
 		req.flash("sessionError", "A system error was encountered. Please try again later");
-	}).finally(function() {
-		if (connection && connection.release) connection.release();
-	});
+	}
 });
 
 router.get('/session/:sessionId', authenticationRequired, function(req, res, next) {
-	let connection;
-
-	database.getConnection().then(function(conn) {
-		connection = conn;
-		return connection.query("SELECT session_owner, session_questionset, session_endtime FROM session WHERE session_id = ?", [req.params["sessionId"]]);
-	}).then(function(result) {
-		if (result.length == 0 || result[0].session_owner != req.user) {
+	try {
+		let databaseResult = database.query("SELECT session_owner, session_questionset, session_endtime FROM session WHERE session_id = ?", [req.params["sessionId"]]);
+		if (databaseResult.length == 0 || databaseResult[0].session_owner != req.user) {
 			let error = new Error('Unable to find session.');
 			error.status = 404;
 			next(error);
@@ -249,30 +516,59 @@ router.get('/session/:sessionId', authenticationRequired, function(req, res, nex
 			return;
 		}
 
-		return connection.query("UPDATE session SET session_endtime = NULL WHERE session_id = ?", [req.params["sessionId"]]);
-	}).then(function(result) {
 		res.render('educator/session/home', {
 			"sessionId": req.params["sessionId"],
 			"sessionAuthenticator": jwt.sign({ sessionId: req.params["sessionId"] }, KeyManager.getPrivateKey(), { algorithm: "RS256", expiresIn: 5 })
 		});
-	}).catch(function(error) {
+	} catch(error) {
 		console.log(error);
 		let returnError = new Error('Failed to start session.');
 		returnError.status = 500;
 		next(returnError);
-	}).finally(function() {
-		if (connection && connection.release) connection.release();
+	}
+});
+
+router.ws('/session/:sessionId/connect', function(ws, req) {
+	let sessionId = req.params["sessionId"];
+	let sessionVerified = false;
+	let session = null;
+
+	ws.on("message", function(message) {
+		message = JSON.parse(message);
+		switch(message.messageType) {
+			case "CONNECT_SESSION":
+				try {
+					let sessionData = jwt.verify(message.messageData, KeyManager.getPublicKey(), {algorithms: ['RS256']});
+					if (sessionData.sessionId != sessionId) {
+						ws.close();
+						return;
+					}
+
+					sessionVerified = true;
+					session = SessionsManager.getSession(sessionId);
+					session.setEducatorSession(ws);
+				} catch (error) {
+					ws.close();
+				}
+				break;
+
+			case "SEND_QUESTION":
+				
+				break;
+		}
+	});
+
+	ws.on("close", function() {
+		if(session != null) {
+			session.setEducatorSession(null);
+		}
 	});
 });
 
 router.get('/session/:sessionId/authenticate', authenticationRequired, function(req, res, next) {
-	let connection;
-
-	database.getConnection().then(function(conn) {
-		connection = conn;
-		return connection.query("SELECT session_owner FROM session WHERE session_id = ? AND session_endtime IS NULL", [req.params["sessionId"]]);
-	}).then(function(result) {
-		if (result.length == 0 || result[0].session_owner != req.user) {
+	try {
+		let databaseResult = database.query("SELECT session_owner FROM session WHERE session_id = ? AND session_endtime IS NULL", [req.params["sessionId"]]);
+		if (databaseResult.length == 0 || databaseResult[0].session_owner != req.user) {
 			let error = new Error('Unable to find session.');
 			error.status = 404;
 			next(error);
@@ -284,11 +580,10 @@ router.get('/session/:sessionId/authenticate', authenticationRequired, function(
 			"sessionId": req.params["sessionId"],
 			"sessionAuthenticator": jwt.sign({ sessionId: req.params["sessionId"] }, KeyManager.getPrivateKey(), { algorithm: "RS256", expiresIn: 5 })
 		});
-	}).catch(function(error) {
+	} catch (error) {
 		console.log(error);
-	}).finally(function() {
-		if (connection && connection.release) connection.release();
-	});
+		next(error);
+	}
 });
 
 router.ws('/session/:sessionId/authenticate/connect', function(ws, req) {

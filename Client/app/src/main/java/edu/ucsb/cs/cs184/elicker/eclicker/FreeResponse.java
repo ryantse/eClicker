@@ -11,7 +11,7 @@ import android.widget.TextView;
  * Created by Dong on 12/9/17.
  */
 
-public class FreeResponse extends Activity{
+public class FreeResponse extends Activity {
 
     public String outputString;
 

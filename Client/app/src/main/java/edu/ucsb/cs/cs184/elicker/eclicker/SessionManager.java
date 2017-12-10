@@ -1,117 +1,136 @@
 package edu.ucsb.cs.cs184.elicker.eclicker;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONStringer;
 
-import java.sql.Connection;
-
-import static edu.ucsb.cs.cs184.elicker.eclicker.QRscanActivity.SESSION_ID;
-import static edu.ucsb.cs.cs184.elicker.eclicker.QRscanActivity.SESSION_TOKEN;
 
 public class SessionManager {
-    private static Session session = null;
+    public static String SESSION_ID = "session_id";
+    public static String SESSION_TOKEN = "session_token";
+    private static SessionManager sessionManager = null;
+    private SharedPreferences sharedPreferences;
 
-    public static class Session {
-        private String sessionToken;
-        private String sessionId;
 
-        private Session() {
+    private SessionManager(SharedPreferences sharedPreferences) {
+        this.sharedPreferences = sharedPreferences;
+    }
 
-        }
-
-        public String getSessionToken() {
-            return sessionToken;
-        }
-
-        public String getSessionId() {
-            return sessionId;
+    public static void Initialize(Context context) {
+        if (sessionManager == null) {
+            SharedPreferences sharedPreferences = context.getSharedPreferences(SessionManager.class.getName(), Context.MODE_PRIVATE);
+            sessionManager = new SessionManager(sharedPreferences);
         }
     }
 
-    public static Session getCurrentSession() {
-        return session;
+    public static SessionManager getSessionManager() {
+        return sessionManager;
     }
 
-    public static void createSessionWithKeys(String key1, String key2, String sessionId, final SessionJoinCallback callback) {
+    public String getSessionId() {
+        return this.sharedPreferences.getString(SESSION_ID, null);
+    }
+
+    public String getSessionToken() {
+        return this.sharedPreferences.getString(SESSION_TOKEN, null);
+    }
+
+    public void exitSession() {
+        SharedPreferences.Editor editor = this.sharedPreferences.edit();
+        editor.remove(SESSION_ID);
+        editor.remove(SESSION_TOKEN);
+        editor.commit();
+    }
+
+    public void createSession(final String sessionId, String[] keys, final SessionJoinCallback callback) {
         ConnectionManager connectionManager = ConnectionManager.getInstance();
-
-        connectionManager.onMessageOnce(MessageType.SESSION_JOIN, new ConnectionManager.MessageListener() {
+        connectionManager.onMessageOnce(ConnectionManager.MessageType.SESSION_JOIN, new ConnectionManager.MessageListener() {
             @Override
-            public void handleMessage(MessageReceived messageReceived) {
-                if (messageReceived.getStatus().equals("OK")) {
-                    System.out.println("OK in session join with keys");
-                    SessionManager.session = new Session();
-                    SessionManager.session.sessionId = messageReceived.getSessionId();
-                    SessionManager.session.sessionToken = messageReceived.getSessionToken();
+            public void handleMessage(JSONObject messageData) {
+                try {
+                    switch (messageData.getString("status")) {
+                        case "OK":
+                            JSONObject sessionData = messageData.getJSONObject("statusExtended");
+                            String sessionId = sessionData.getString("sessionId");
+                            String sessionToken = sessionData.getString("sessionToken");
 
-                    QRscanActivity.sessionToken = messageReceived.getSessionToken();
-                    QRscanActivity.sessionID = messageReceived.getSessionId();
-                    SharedPreferences.Editor prefEditor = QRscanActivity.sharedPreferences.edit();
-                    prefEditor.putString(SESSION_ID, QRscanActivity.sessionID);
-                    prefEditor.putString(SESSION_TOKEN, QRscanActivity.sessionToken);
-                    prefEditor.commit();
+                            SharedPreferences.Editor editor = SessionManager.this.sharedPreferences.edit();
+                            editor.putString(SESSION_ID, sessionId);
+                            editor.putString(SESSION_TOKEN, sessionToken);
+                            editor.commit();
 
-                    callback.onJoinSuccess();
-                } else if (messageReceived.getStatus().equals("ERROR")) {
-                    System.out.println(messageReceived.getErrorMessage());
-                    callback.onJoinFailure(messageReceived.getErrorMessage());
-                }
+                            callback.onSessionJoinSuccess();
+                            break;
 
-            }
-        });
-        connectionManager.sendMessage(buildSessionMessage("sessionKey", key1, key2, "", sessionId));
-
-    }
-
-    public static void createSessionWithToken(String sessionId, String sessionToken, final SessionJoinCallback callback) {
-        // Subscribe to SESSION_JOIN to receive errors caused by calling session join.
-        ConnectionManager connectionManager = ConnectionManager.getInstance();
-        connectionManager.onMessageOnce(MessageType.SESSION_JOIN, new ConnectionManager.MessageListener() {
-            @Override
-            public void handleMessage(MessageReceived messageReceived) {
-                if (messageReceived.getStatus().equals("OK")) {
-                    System.out.println("OK in session join using token");
-                    SessionManager.session = new Session();
-                    SessionManager.session.sessionId = messageReceived.getSessionId();
-                    SessionManager.session.sessionToken = messageReceived.getSessionToken();
-                    callback.onJoinSuccess();
-                } else if (messageReceived.getStatus().equals("ERROR")) {
-                    System.out.println(messageReceived.getErrorMessage());
-                    callback.onJoinFailure(messageReceived.getErrorMessage());
+                        case "ERROR":
+                            callback.onSessionJoinFailure(messageData.getJSONObject("statusExtended").getString("errorReason"));
+                            break;
+                    }
+                } catch (JSONException exception) {
+                    System.err.println("Malformed JSON object received.");
                 }
             }
         });
 
-        connectionManager.sendMessage(buildSessionMessage("sessionToken", "", "", sessionToken, sessionId));
-    }
-
-    private static String buildSessionMessage(String authenticationType, String key1, String key2,
-                                              String sessionToken, String sessionId) {
         try {
-            JSONObject messageDataObj = new JSONObject()
-                    .put("authenticationType", authenticationType)
-                    .put("sessionKeys", new JSONArray().put(key1).put(key2))
-                    .put("sessionToken", sessionToken)
-                    .put("sessionId", sessionId);
-
-            return  new JSONObject()
-                    .put("messageType", "SESSION_JOIN")
-                    .put("messageData", messageDataObj)
-                    .toString();
-
+            JSONObject messageData = new JSONObject()
+                    .put("authenticationType", "sessionKey")
+                    .put("sessionId", sessionId)
+                    .put("sessionKeys", new JSONArray(keys));
+            connectionManager.sendMessage(ConnectionManager.MessageType.SESSION_JOIN, messageData);
         } catch (JSONException exception) {
-            System.err.println(exception.toString());
-            return "";
+            System.err.println("Failed to create message data for SESSION_JOIN.");
+        }
+    }
+
+    public void createSession(final String sessionId, String sessionToken, final SessionJoinCallback callback) {
+        ConnectionManager connectionManager = ConnectionManager.getInstance();
+        connectionManager.onMessageOnce(ConnectionManager.MessageType.SESSION_JOIN, new ConnectionManager.MessageListener() {
+            @Override
+            public void handleMessage(JSONObject messageData) {
+                try {
+                    switch (messageData.getString("status")) {
+                        case "OK":
+                            JSONObject sessionData = messageData.getJSONObject("statusExtended");
+                            String sessionId = sessionData.getString("sessionId");
+                            String sessionToken = sessionData.getString("sessionToken");
+
+                            SharedPreferences.Editor editor = SessionManager.this.sharedPreferences.edit();
+                            editor.putString(SESSION_ID, sessionId);
+                            editor.putString(SESSION_TOKEN, sessionToken);
+                            editor.commit();
+
+                            callback.onSessionJoinSuccess();
+                            break;
+
+                        case "ERROR":
+                            callback.onSessionJoinFailure(messageData.getJSONObject("statusExtended").getString("errorReason"));
+                            break;
+                    }
+                } catch (JSONException exception) {
+                    System.err.println("Malformed JSON object received.");
+                }
+            }
+        });
+
+        try {
+            JSONObject messageData = new JSONObject()
+                    .put("authenticationType", "sessionToken")
+                    .put("sessionId", sessionId)
+                    .put("sessionToken", sessionToken);
+            connectionManager.sendMessage(ConnectionManager.MessageType.SESSION_JOIN, messageData);
+        } catch (JSONException exception) {
+            System.err.println("Failed to create message data for SESSION_JOIN.");
         }
     }
 
     public interface SessionJoinCallback {
-        void onJoinSuccess();
-        void onJoinFailure(String reason);
+        void onSessionJoinSuccess();
+
+        void onSessionJoinFailure(String failureReason);
     }
 
 }

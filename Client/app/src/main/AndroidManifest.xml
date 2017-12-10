@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="edu.ucsb.cs.cs184.elicker.eclicker">
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-feature android:name="android.hardware.camera"
-        android:required="true" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-feature android:name="android.hardware.camera" android:required="true" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
 
     <application
@@ -21,6 +21,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".QRscanActivity">
+        </activity>
+        <activity android:name=".WaitingActivity">
         </activity>
     </application>
 

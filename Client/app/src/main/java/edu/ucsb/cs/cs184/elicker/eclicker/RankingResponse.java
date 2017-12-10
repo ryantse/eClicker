@@ -56,11 +56,11 @@ public class RankingResponse extends Activity {
         });
     }
 
-    public void formatString(ArrayList<String> stringArrayList){
+    public void formatString(ArrayList<String> stringArrayList) {
 
         temp = new StringBuilder(500);
 
-        for(int i = 0; i < stringArrayList.size(); i++){
+        for (int i = 0; i < stringArrayList.size(); i++) {
             temp.append(stringArrayList.get(i));
         }
 
@@ -72,12 +72,12 @@ public class RankingResponse extends Activity {
         boolean checked = ((CheckBox) view).isChecked();
 
         // Check which checkbox was clicked
-        switch(view.getId()) {
+        switch (view.getId()) {
             case R.id.checkBox:
                 if (checked) {
                     holder.add(answerOne.getText().toString());
                     formatString(holder);
-                }else{
+                } else {
                     holder.remove(answerOne.getText().toString());
                     formatString(holder);
                 }
@@ -86,7 +86,7 @@ public class RankingResponse extends Activity {
                 if (checked) {
                     holder.add(answerTwo.getText().toString());
                     formatString(holder);
-                }else{
+                } else {
                     holder.remove(answerTwo.getText().toString());
                     formatString(holder);
                 }
@@ -95,7 +95,7 @@ public class RankingResponse extends Activity {
                 if (checked) {
                     holder.add(answerThree.getText().toString());
                     formatString(holder);
-                }else{
+                } else {
                     holder.remove(answerThree.getText().toString());
                     formatString(holder);
                 }
@@ -104,7 +104,7 @@ public class RankingResponse extends Activity {
                 if (checked) {
                     holder.add(answerFour.getText().toString());
                     formatString(holder);
-                }else{
+                } else {
                     holder.remove(answerFour.getText().toString());
                     formatString(holder);
                 }
@@ -113,7 +113,7 @@ public class RankingResponse extends Activity {
                 if (checked) {
                     holder.add(answerFive.getText().toString());
                     formatString(holder);
-                }else{
+                } else {
                     holder.remove(answerFive.getText().toString());
                     formatString(holder);
                 }
