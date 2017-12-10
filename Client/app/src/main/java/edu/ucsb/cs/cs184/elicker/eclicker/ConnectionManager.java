@@ -1,6 +1,8 @@
 package edu.ucsb.cs.cs184.elicker.eclicker;
 import com.neovisionaries.ws.client.*;
 
+import org.json.JSONException;
+
 import java.net.URI;
 import java.util.*;
 
@@ -21,7 +23,7 @@ public class ConnectionManager {
 
         messageListeners = new HashMap<>();
         for (MessageType messageType : MessageType.values()) {
-            messageListeners.put(messageType, new ArrayList<>());
+            messageListeners.put(messageType, new ArrayList<MessageListenerContainer>());
         }
     }
 
@@ -33,7 +35,7 @@ public class ConnectionManager {
         return connectionManager;
     }
 
-    public void onTextMessage(String strJson) {
+    public void onTextMessage(String strJson) throws JSONException {
         MessageReceived messageReceived = new MessageReceived(strJson);
         Iterator<MessageListenerContainer> messageListenerContainerIterator = messageListeners.get(messageReceived.getMessageType()).iterator();
         while(messageListenerContainerIterator.hasNext()) {

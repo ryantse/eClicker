@@ -9,6 +9,12 @@ import android.widget.TextView;
 
 import com.dlazaro66.qrcodereaderview.QRCodeReaderView;
 
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 
 /**
@@ -26,10 +32,10 @@ public class QRscanActivity extends Activity implements QRCodeReaderView.OnQRCod
     public static final String SESSION_ID = "sessionID";
     public static final String SESSION_TOKEN = "sessionToken";
 
-    public String currentDeviceID;
-    public String currentDeviceToken;
-    public String currentSessionID;
-    public String currentSessionToken;
+    public String savedDeviceID;
+    public String savedDeviceToken;
+    public String savedSessionID;
+    public String savedSessionToken;
 
     SharedPreferences sharedPreferences;
 
@@ -42,11 +48,23 @@ public class QRscanActivity extends Activity implements QRCodeReaderView.OnQRCod
 
         sharedPreferences = getPreferences(Context.MODE_PRIVATE);
 
-        currentDeviceID = sharedPreferences.getString(DEVICE_ID, null);
-        currentDeviceToken = sharedPreferences.getString(DEVICE_TOKEN, null);
-        currentSessionID = sharedPreferences.getString(SESSION_ID, null);
-        currentSessionToken = sharedPreferences.getString(SESSION_TOKEN, null);
+        savedDeviceID = sharedPreferences.getString(DEVICE_ID, null);
+        savedDeviceToken = sharedPreferences.getString(DEVICE_TOKEN, null);
+        savedSessionID = sharedPreferences.getString(SESSION_ID, null);
+        savedSessionToken = sharedPreferences.getString(SESSION_TOKEN, null);
 
+        ConnectionManager connectionManager = ConnectionManager.getInstance();
+        connectionManager.onMessageOnce(MessageType.DEVICE_JOIN, new ConnectionManager.MessageListener() {
+            @Override
+            public void handleMessage(MessageReceived messageReceived) {
+                if (messageReceived.getStatus().equals("OK")) {
+                    System.out.println("OK");
+                } else if (messageReceived.getStatus().equals("ERROR")) {
+                    System.out.println(messageReceived.getErrorMessage());
+                }
+            }
+        });
+        connectionManager.sendMessage("{\"messageType\":\"DEVICE_JOIN\",\"messageData\":\"" + savedDeviceToken + "\"}");
         // Get the Intent that started this activity and extract the string
         //Intent intent = getIntent();
 
@@ -111,5 +129,21 @@ public class QRscanActivity extends Activity implements QRCodeReaderView.OnQRCod
     protected void onPause() {
         super.onPause();
         qrCodeReaderView.stopCamera();
+    }
+
+    public void registerDevice() throws Exception {
+        URL conn = new URL("http://" + ConnectionManager.serverHost + "/mobile/register-device");
+        URLConnection yc = conn.openConnection();
+        BufferedReader in = new BufferedReader(new InputStreamReader(
+                yc.getInputStream()));
+        String inputLine = in.readLine();
+        in.close();
+        JSONObject obj = new JSONObject(inputLine);
+        String deviceId = obj.getString("deviceId");
+        String deviceToken = obj.getString("deviceToken");
+        SharedPreferences.Editor prefEditor = sharedPreferences.edit();
+        prefEditor.putString(DEVICE_ID, deviceId);
+        prefEditor.putString(DEVICE_TOKEN, deviceToken);
+        prefEditor.commit();
     }
 }
