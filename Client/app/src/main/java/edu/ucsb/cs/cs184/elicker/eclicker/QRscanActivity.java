@@ -18,8 +18,9 @@ public class QRscanActivity extends Activity implements QRCodeReaderView.OnQRCod
 
     private QRCodeReaderView qrCodeReaderView;
     private TextView myQRoutput;
+    private String sessionID;
 
-    private ArrayList<String> ReadQR = new ArrayList<String>(2);
+    private ArrayList<String> ReadQR = new ArrayList<String>(3);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,15 +55,30 @@ public class QRscanActivity extends Activity implements QRCodeReaderView.OnQRCod
     public void onQRCodeRead(String text, PointF[] points) {
         //myQRoutput.setText(text);
         //System.out.println(text);
+        String[] parsed = text.split(":");
+        sessionID = parsed[0];
+        checkThrowAway();
 
-        if(ReadQR.size() == 2){
-            System.out.println(ReadQR);
+        if(ReadQR.size() == 3){
+            //System.out.println(ReadQR);
             //Intent intent = new Intent(this, );
             //startActivity(intent);
-            ReadQR.remove(0);
+            ReadQR.remove(1);
         }
-        ReadQR.add(text);
+        ReadQR.add(parsed[1]);
+        if(ReadQR.size() == 3){
+            
+        }
 
+    }
+
+    public void checkThrowAway() {
+        if(ReadQR.isEmpty()){
+            ReadQR.add(sessionID);
+        }else if(ReadQR.get(0) != sessionID){
+            ReadQR.clear();
+            ReadQR.add(sessionID);
+        }
     }
 
     @Override
