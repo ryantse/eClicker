@@ -74,11 +74,11 @@
 									Session
 								</button>
 								<div class="dropdown-menu">
-									<a class="dropdown-item" href="#">View Existing Session</a>
-									<a class="dropdown-item" href="#">Create New Session</a>
+									<a class="dropdown-item" href="<%= baseUrl %>/question-set/<%= questionSetId %>/sessions">View Existing Sessions</a>
+									<a class="dropdown-item" href="<%= baseUrl %>/question-set/<%= questionSetId %>/create-session" target="_blank">Create New Session</a>
 								</div>
 							</div>
-							<a href="#" class="btn btn-danger">Delete</a>
+							<a href="#" class="btn btn-danger" id="deleteQuestionSet">Delete</a>
 						</td>
 					</tr>
 					</tbody>
@@ -116,6 +116,28 @@
 				<div class="modal-footer">
 					<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
 					<button type="button" class="btn btn-danger" id="deleteModalConfirm">Delete</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal" tabindex="-1" role="dialog" id="deleteQuestionSetModal">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Delete Question</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<p>Are you sure you want to delete this question set?</p>
+					<p><small><em>All questions and related sessions for this quesiton set will be deleted.</em></small></p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+					<form action="<%= baseUrl %>/question-set/<%= questionSetId %>/delete" method="post">
+					<button type="submit" class="btn btn-danger" id="deleteQuestionSetModalConfirm">Delete</button>
+					</form>
 				</div>
 			</div>
 		</div>

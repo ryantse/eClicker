@@ -1,63 +1,66 @@
-let booleanAnswerData = {
-	title: ""
+const questionTextarea = $("#questionTextarea");
+const dataTarget = $("#dataTarget").val();
+
+let questionData = {
+	"title": ""
 };
 
 function bindActions() {
-	const questionTextarea = jQuery("#questionTextarea");
-
 	questionTextarea.on("input", function() {
-		booleanAnswerData.title = questionTextarea.val();
+		questionData["title"] = questionTextarea.val();
 		checkCompletion();
 	});
 
-	jQuery("#saveQuestion").on("click", function(event) {
+	$("#cancel").on("click", function() {
+		window.location = dataTarget + "/../../";
+	});
+
+	$("#saveQuestion").on("click", function(event) {
 		event.preventDefault();
-		const submitError = jQuery("#submitError");
+		const submitError = $("#submitError");
 
 		submitError.empty();
 
-
-		jQuery.ajax({
-			method: "POST",
-			url: jQuery("#dataTarget").val() + "/modify",
-			data: {
-				question_title: booleanAnswerData.title,
-				question_data: JSON.stringify(booleanAnswerData.question_data)
+		$.ajax({
+			"method": "POST",
+			"url": dataTarget + "/modify",
+			"data": {
+				"question_title": questionData["title"],
+				"question_data": "{}"
 			},
-			dataType: "JSON",
-			success: function(data) {
-				if(data.status == "OK") {
-					window.location = data.redirectTo;
+			"dataType": "JSON",
+			"success": function(data) {
+				if(data["status"] == "OK") {
+					window.location = data["redirectTo"];
 				} else {
-					submitError.append("<div class=\"alert alert-danger\" role=\"alert\"><b>Question Modify Error</b> " + data.statusExtended + "</div>")
+					const submitErrorContent = $("<div class=\"alert alert-danger\" role=\"alert\"><b>Question Modify Error</b> <span id=\"alertText\"></span></div>");
+					submitErrorContent.find("#alertText").text(data["statusExtended"]);
+					submitError.append(submitErrorContent);
 				}
 			}
 		});
 	});
+}
 
-	jQuery("#cancel").on("click", function(event) {
-		window.location = jQuery("#dataTarget").val() + "/../../";
-	});
+function checkCompletion() {
+	$("#saveQuestion").prop("disabled", ($.trim(questionData["title"]).length == 0));
 }
 
 function loadData() {
-	jQuery.ajax({
-		method: "GET",
-		url: jQuery("#dataTarget").val() + "/data",
-		dataType: "JSON",
-		success: function(data) {
-			booleanAnswerData.title = data.question_title;
-			jQuery("#questionTextarea").val(booleanAnswerData.title);
-			booleanAnswerData.question_data = data.question_data;
+	$.ajax({
+		"method": "GET",
+		"url": dataTarget+ "/data",
+		"dataType": "JSON",
+		"success": function(data) {
+			questionData["title"] = data["question_title"];
+			questionTextarea.val(questionData["title"]);
+
 			checkCompletion();
 		}
 	});
 }
 
-function checkCompletion() {
-	jQuery("#addQuestion").prop("disabled", (jQuery.trim(booleanAnswerData.title).length == 0));
-}
-
-bindActions();
-checkCompletion();
-loadData();
+$(document).ready(function() {
+	bindActions();
+	loadData();
+});

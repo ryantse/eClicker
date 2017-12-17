@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/menu_session_waiting_device_id"
+        android:checkable="false"
+        android:enabled="false"
+        android:visible="true" />
+    <item
+        android:id="@+id/menu_session_waiting_ask_question"
+        android:checkable="false"
+        android:enabled="true"
+        android:title="@string/menu_ask_question"
+        android:visible="true"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/menu_session_waiting_exit_session"
+        android:checkable="false"
+        android:enabled="true"
+        android:title="@string/menu_session_exit"
+        android:visible="true" />
+</menu>

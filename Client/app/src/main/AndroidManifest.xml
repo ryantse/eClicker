@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="edu.ucsb.cs.cs184.elicker.eclicker">
+    package="edu.ucsb.cs.cs184.eclicker">
+
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-feature android:name="android.hardware.camera" android:required="true" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
 
     <application
@@ -13,17 +17,31 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".WelcomeActivity">
+        <activity
+            android:name=".EntryActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".QRscanActivity">
-        </activity>
-        <activity android:name=".WaitingActivity">
-        </activity>
+        <activity android:name=".CameraPermissionActivity" />
+        <activity android:name=".QRScanActivity" />
+        <activity android:name=".ReconnectActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity android:name=".SessionWaitingActivity" />
+        <activity
+            android:name=".SessionMultipleChoiceActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity
+            android:name=".SessionBooleanAnswerActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity
+            android:name=".SessionShortAnswerActivity"
+            android:windowSoftInputMode="stateVisible|adjustResize" />
+        <activity android:name=".SessionRankedChoiceActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
     </application>
 
 </manifest>

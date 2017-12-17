@@ -1,149 +1,136 @@
-let rankedChoiceData = {
-	title: "",
-	question_data: {
-		choices: []
+const multipleChoiceAnswers = $("#multipleChoiceAnswers");
+const multipleChoiceAnswersHeader = multipleChoiceAnswers.find("li:first");
+const addModal = $("#addModal");
+const addModalText = $("#addModalText");
+const addModalAdd = $("#addModalAdd");
+const questionTextarea = $("#questionTextarea");
+const deleteModal = $("#deleteModal");
+const editModal = $("#editModal");
+const editModalText = $("#editModalText");
+const saveQuestion = $("#saveQuestion");
+const dataTarget = $("#dataTarget").val();
+
+let questionData = {
+	"title": "",
+	"question_data": {
+		"scramble": false,
+		"choices": []
 	}
 };
 
-function moveObjectAtIndex(array, sourceIndex, destinationIndex) {
-	let placeholder = {};
-	let objectToMove = array.splice(sourceIndex, 1, placeholder)[0];
-	array.splice(destinationIndex, 0, objectToMove);
-	array.splice(array.indexOf(placeholder), 1);
-}
-
 function renderChoices() {
-	let multipleChoiceAnswers = jQuery("#multipleChoiceAnswers");
-	let multipleChoiceAnswersHeader = multipleChoiceAnswers.find("li:first");
-
-	// Clear out existing answer choices.
 	multipleChoiceAnswers.find(".choice").remove();
 
-	if(rankedChoiceData.question_data.choices.length > 0) {
-		for (let i = rankedChoiceData.question_data.choices.length - 1; i >= 0; --i) {
-			let choiceText = rankedChoiceData.question_data.choices[i];
-			let choice = jQuery("<li class=\"list-group-item align-items-center choice\">" + choiceText + "<a href=\"#\" class=\"choice-delete float-right text-muted\"><i class=\"fa fa-trash\" aria-hidden=\"true\"></i></a><a href=\"#\" class=\"choice-edit float-right text-muted\"><i class=\"fa fa-pencil mr-2\" aria-hidden=\"true\"></i></a></li>");
+	if(questionData["question_data"]["choices"].length > 0) {
+		for(let i = (questionData["question_data"]["choices"].length - 1); i >= 0; --i) {
+			let choice = $("<li class=\"list-group-item align-items-center choice\"><i class=\"fa fa-bars mr-2 choice-handle\" aria-hidden=\"true\"></i><span id=\"choiceText\"></span><a href=\"#\" class=\"choice-delete float-right text-muted\"><i class=\"fa fa-trash\" aria-hidden=\"true\"></i></a><a href=\"#\" class=\"choice-edit float-right text-muted\"><i class=\"fa fa-pencil mr-2\" aria-hidden=\"true\"></i></a></li>");
+			choice.find("#choiceText").text(questionData["question_data"]["choices"][i]);
 			choice.data("choice-id", i);
 			choice.insertAfter(multipleChoiceAnswersHeader);
 		}
 	} else {
-		jQuery("<li class=\"list-group-item align-items-center no-sort choice\">To create a new ranked choice option, press \"Add an Option\" below.</li>").insertAfter(multipleChoiceAnswersHeader);
+		$("<li class=\"list-group-item align-items-center no-sort choice\">To create a new ranked choice option, press \"Add an Option\" below.</li>").insertAfter(multipleChoiceAnswersHeader);
 	}
-
-	jQuery(".choice-delete").on("click", function () {
-		const choiceId = jQuery(this).parent("li").data("choice-id");
-		const deleteModal = jQuery("#deleteModal");
-
-		deleteModal.modal().modal("show");
-		jQuery("#deleteModalConfirm").on("click", function() {
-			rankedChoiceData.question_data.choices.splice(choiceId, 1);
-			renderChoices();
-			deleteModal.modal("hide");
-			jQuery(this).unbind("click");
-			checkCompletion();
-		});
-	});
-
-	jQuery(".choice-edit").on("click", function() {
-		const choiceId = jQuery(this).parent("li").data("choice-id");
-		const editModal = jQuery("#editModal");
-		const editModalText = jQuery("#editModalText");
-
-		// Set edit modal text.
-		editModalText.val(rankedChoiceData.question_data.choices[choiceId]);
-
-		// Initialize and show modal.
-		editModal.modal().modal("show");
-
-		// Bind edit modal save button.
-		jQuery("#editModalSave").on("click", function() {
-			rankedChoiceData.question_data.choices[choiceId] = editModalText.val();
-			renderChoices();
-			editModal.modal("hide");
-			jQuery(this).unbind("click");
-		});
-	});
 }
 
 function bindActions() {
-	const addModal = jQuery("#addModal");
-	const addModalText = jQuery("#addModalText");
-	const questionTextarea = jQuery("#questionTextarea");
+	// Delete Modal.
+	multipleChoiceAnswers.on("click", ".choice-delete", function() {
+		deleteModal.data("choice-id", $(this).parent("li").data("choice-id"));
+		deleteModal.modal();
+	});
 
-	jQuery("#choiceAdd").on("click", function() {
+	$("#deleteModalConfirm").on("click", function() {
+		questionData["question_data"]["choices"].splice(deleteModal.data("choice-id"), 1);
+		deleteModal.modal("hide");
+
+		renderChoices();
+		checkCompletion();
+	});
+
+	// Edit Modal.
+	multipleChoiceAnswers.on("click", ".choice-edit", function() {
+		const choiceId = $(this).parent("li").data("choice-id");
+		editModal.data("choice-id", choiceId);
+		editModalText.val(questionData["question_data"]["choices"][choiceId]);
+		editModal.modal();
+	});
+
+	$("#editModalSave").on("click", function() {
+		questionData["question_data"]["choices"][editModal.data("choice-id")] = editModalText.val();
+		editModal.modal("hide");
+
+		renderChoices();
+	});
+
+	// Add Modal.
+	$("#choiceAdd").on("click", function() {
 		addModalText.val("");
 		addModalText.trigger("input");
-		addModal.modal().modal("show");
+
+		addModal.modal();
 	});
 
 	addModalText.on("input", function() {
-		jQuery("#addModalAdd").prop("disabled", !(jQuery(this).val().length > 0));
+		addModalAdd.prop("disabled", !($(this).val().length > 0));
 	});
 
-	jQuery("#addModalAdd").on("click", function() {
-		rankedChoiceData.question_data.choices.push(addModalText.val());
-		renderChoices();
+	addModalAdd.on("click", function() {
+		questionData["question_data"]["choices"].push(addModalText.val());
 		addModal.modal("hide");
+
+		renderChoices();
 		checkCompletion();
 	});
 
 	questionTextarea.on("input", function() {
-		rankedChoiceData.title = questionTextarea.val();
+		questionData["title"] = questionTextarea.val();
+
 		checkCompletion();
 	});
 
-	jQuery("#multipleChoiceAnswers").on("sortupdate", function(event, ui) {
-		let movedItem = jQuery(ui.item);
-		let choiceId = movedItem.data("choice-id");
-
-		let choiceIdNext = movedItem.next().data("choice-id");
-		if(choiceIdNext === undefined) {
-			choiceIdNext = rankedChoiceData.question_data.choices.length;
-		}
-
-		moveObjectAtIndex(rankedChoiceData.question_data.choices, choiceId, choiceIdNext);
-		renderChoices();
+	$("#cancel").on("click", function() {
+		window.location = dataTarget + "/../../";
 	});
 
-	jQuery("#saveQuestion").on("click", function(event) {
+	saveQuestion.on("click", function(event) {
 		event.preventDefault();
-		const submitError = jQuery("#submitError");
+		const submitError = $("#submitError");
 
 		submitError.empty();
 
-
-		jQuery.ajax({
-			method: "POST",
-			url: jQuery("#dataTarget").val() + "/modify",
-			data: {
-				question_title: rankedChoiceData.title,
-				question_data: JSON.stringify(rankedChoiceData.question_data)
+		$.ajax({
+			"method": "POST",
+			"url": dataTarget + "/modify",
+			"data": {
+				"question_title": questionData["title"],
+				"question_data": JSON.stringify(questionData["question_data"])
 			},
-			dataType: "JSON",
-			success: function(data) {
-				if(data.status == "OK") {
-					window.location = data.redirectTo;
+			"dataType": "JSON",
+			"success": function(data) {
+				if(data["status"] == "OK") {
+					window.location = data["redirectTo"];
 				} else {
-					submitError.append("<div class=\"alert alert-danger\" role=\"alert\"><b>Question Modify Error</b> " + data.statusExtended + "</div>")
+					const submitErrorContent = $("<div class=\"alert alert-danger\" role=\"alert\"><b>Question Modify Error</b> <span id=\"alertText\"></span></div>");
+					submitErrorContent.find("#alertText").text(data["statusExtended"]);
+					submitError.append(submitErrorContent);
 				}
 			}
 		});
 	});
-
-	jQuery("#cancel").on("click", function(event) {
-		window.location = jQuery("#dataTarget").val() + "/../../";
-	});
 }
 
 function loadData() {
-	jQuery.ajax({
-		method: "GET",
-		url: jQuery("#dataTarget").val() + "/data",
-		dataType: "JSON",
-		success: function(data) {
-			rankedChoiceData.title = data.question_title;
-			jQuery("#questionTextarea").val(rankedChoiceData.title);
-			rankedChoiceData.question_data = data.question_data;
+	$.ajax({
+		"method": "GET",
+		"url": dataTarget + "/data",
+		"dataType": "JSON",
+		"success": function(data) {
+			questionData["title"] = data["question_title"];
+			questionTextarea.val(questionData["title"]);
+
+			questionData["question_data"]["choices"] = data["question_data"]["choices"];
+
 			renderChoices();
 			checkCompletion();
 		}
@@ -151,10 +138,12 @@ function loadData() {
 }
 
 function checkCompletion() {
-	jQuery("#saveQuestion").prop("disabled", (jQuery.trim(rankedChoiceData.title).length == 0 || rankedChoiceData.question_data.choices.length < 2));
+	saveQuestion.prop("disabled", ($.trim(questionData["title"]).length == 0 || questionData["question_data"]["choices"].length < 2));
 }
 
-renderChoices();
-bindActions();
-checkCompletion();
-loadData();
+$(document).ready(function() {
+	renderChoices();
+	bindActions();
+
+	loadData();
+});

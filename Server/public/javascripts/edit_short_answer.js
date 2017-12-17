@@ -1,34 +1,41 @@
-let shortAnswerData = {
-	title: ""
+const questionTextarea = $("#questionTextarea");
+const dataTarget = $("#dataTarget").val();
+
+let questionData = {
+	"title": ""
 };
 
 function bindActions() {
-	const questionTextarea = jQuery("#questionTextarea");
-
 	questionTextarea.on("input", function() {
-		shortAnswerData.title = questionTextarea.val();
+		questionData["title"] = questionTextarea.val();
 		checkCompletion();
 	});
 
-	jQuery("#saveQuestion").on("click", function(event) {
+	$("#cancel").on("click", function() {
+		window.location = dataTarget + "/../../";
+	});
+
+	$("#saveQuestion").on("click", function(event) {
 		event.preventDefault();
-		const submitError = jQuery("#submitError");
+		const submitError = $("#submitError");
 
 		submitError.empty();
 
-		jQuery.ajax({
-			method: "POST",
-			url: jQuery("#dataTarget").val() + "/modify",
-			data: {
-				question_title: shortAnswerData.title,
-				question_data: JSON.stringify({})
+		$.ajax({
+			"method": "POST",
+			"url": dataTarget + "/modify",
+			"data": {
+				"question_title": questionData["title"],
+				"question_data": "{}"
 			},
-			dataType: "JSON",
-			success: function(data) {
-				if(data.status == "OK") {
-					window.location = data.redirectTo;
+			"dataType": "JSON",
+			"success": function(data) {
+				if(data["status"] == "OK") {
+					window.location = data["redirectTo"];
 				} else {
-					submitError.append("<div class=\"alert alert-danger\" role=\"alert\"><b>Question Create Error</b> " + data.statusExtended + "</div>")
+					const submitErrorContent = $("<div class=\"alert alert-danger\" role=\"alert\"><b>Question Modify Error</b> <span id=\"alertText\"></span></div>");
+					submitErrorContent.find("#alertText").text(data["statusExtended"]);
+					submitError.append(submitErrorContent);
 				}
 			}
 		});
@@ -36,22 +43,24 @@ function bindActions() {
 }
 
 function checkCompletion() {
-	jQuery("#saveQuestion").prop("disabled", (jQuery.trim(shortAnswerData.title).length == 0));
+	$("#saveQuestion").prop("disabled", ($.trim(questionData["title"]).length == 0));
 }
 
 function loadData() {
-	jQuery.ajax({
-		method: "GET",
-		url: jQuery("#dataTarget").val() + "/data",
-		dataType: "JSON",
-		success: function(data) {
-			shortAnswerData.title = data.question_title;
-			jQuery("#questionTextarea").val(shortAnswerData.title);
+	$.ajax({
+		"method": "GET",
+		"url": dataTarget+ "/data",
+		"dataType": "JSON",
+		"success": function(data) {
+			questionData["title"] = data["question_title"];
+			questionTextarea.val(questionData["title"]);
+
 			checkCompletion();
 		}
 	});
 }
 
-bindActions();
-checkCompletion();
-loadData();
+$(document).ready(function() {
+	bindActions();
+	loadData();
+});

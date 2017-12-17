@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<title>eClicker - Session</title>
+
+	<link rel="stylesheet"
+	      href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-beta.2/css/bootstrap.min.css"
+	      integrity="sha256-QUyqZrt5vIjBumoqQV0jM8CgGqscFfdGhN+nVCqX0vc=" crossorigin="anonymous"/>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+	      integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous"/>
+</head>
+
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-2">
+	<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navBar" aria-controls="navBar"
+	        aria-expanded="false" aria-label="Toggle navigation">
+		<span class="navbar-toggler-icon"></span>
+	</button>
+	<div class="collapse navbar-collapse justify-content-md-center" id="navBar">
+		<ul class="navbar-nav">
+			<li class="nav-item">
+				<a class="nav-link" href="<%= baseUrl %>/question-set/<%= questionSetId %>/modify">Back to Question Set</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" href="<%= baseUrl %>/session/<%= sessionId %>/control" target="_blank">Open Session Control</a>
+			</li>
+			<li class="nav-item dropdown">
+				<a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true"
+				   aria-expanded="false" id="myAccount">
+					Account
+				</a>
+				<div class="dropdown-menu" aria-labelledby="myAccount">
+					<a class="dropdown-item" href="<%= baseUrl %>/logout">Logout</a>
+				</div>
+			</li>
+		</ul>
+	</div>
+</nav>
+<div class="container mt-4">
+	<main>
+		<div class="row justify-content-center">
+			<div class="col-8">
+				<h3 class="mb-4">Session <%= sessionId %></h3>
+
+				<table class="table table-bordered mt-2">
+					<thead class="thead-light">
+					<tr>
+						<th scope="col" colspan="2">Session</th>
+					</tr>
+					</thead>
+					<tbody>
+					<tr>
+						<th scope="row" class="align-middle">Start Time</th>
+						<td>
+							<%= startTime %>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row" class="align-middle">End Time</th>
+						<td>
+							<% if(endTime != null) { %><%= endTime %><% } else { %>-<% } %>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row" class="align-middle">Total Students</th>
+						<td>
+							<%= totalStudents %>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row" class="align-middle">Actions</th>
+						<td>
+							<a href="<%= baseUrl %>/session/<%= sessionId %>/export" class="btn btn-primary">Export</a>
+							<a href="#" class="btn btn-danger" id="deleteSession">Delete</a>
+						</td>
+					</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</main>
+	<footer class="footer">
+		<div class="row justify-content-center">
+			<div class="col-8">
+				&copy; eClicker 2017.
+			</div>
+		</div>
+	</footer>
+	<div class="modal" tabindex="-1" role="dialog" id="deleteModal">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Delete Session</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<p>Are you sure you want to delete this session?</p>
+					<p><small><em>Previously recorded answers for this session will be deleted.</em></small></p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+					<form action="<%= baseUrl %>/session/<%= sessionId %>/delete" method="post">
+					<button type="submit" class="btn btn-danger">Delete</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"
+        integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.13.0/umd/popper.min.js"
+        integrity="sha256-pS96pU17yq+gVu4KBQJi38VpSuKN7otMrDQprzf/DWY=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-beta.2/js/bootstrap.min.js"
+        integrity="sha256-GIa8Vh3sfESnVB2CN3rYGkD/MklvMq0lmITweQxE1qU=" crossorigin="anonymous"></script>
+<script src="/javascripts/session.js"></script>
+</body>
+</html>

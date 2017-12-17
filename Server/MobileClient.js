@@ -7,21 +7,22 @@ class MobileClient {
 		this.websocket = websocket;
 		this.deviceId = null;
 		this.session = null;
-		this.bindHandlers();
+		this._bindHandlers();
 	}
 
-	bindHandlers() {
-		this.websocket.on("message", this.onMessage.bind(this));
-		this.websocket.on("close", this.onClose.bind(this));
+	_bindHandlers() {
+		this.websocket.on("message", this._onMessage.bind(this));
+		this.websocket.on("close", this._onClose.bind(this));
 	}
 
-	onClose() {
+	_onClose() {
+		console.log("Connection closed.");
 		if(this.session != null) {
 			this.session.removeSessionClient(this);
 		}
 	}
 
-	onMessage(message) {
+	_onMessage(message) {
 		console.log(message);
 
 		try {
@@ -32,169 +33,139 @@ class MobileClient {
 
 		switch(message.messageType) {
 			case "DEVICE_JOIN":
-				let deviceId = DeviceTokenManager.retrieveDeviceId(message.messageData.deviceToken);
-				if(deviceId == null) {
-					this.websocket.send(JSON.stringify({
-						messageType: "DEVICE_JOIN",
-						messageData: {
-							status: "ERROR",
-							statusExtended: {
-								errorReason: "DEVICE_TOKEN_INVALID"
-							}
-						}
-					}));
-					return;
-				}
-
-				this.deviceId = deviceId;
-				this.websocket.send(JSON.stringify({
-					messageType: "DEVICE_JOIN",
-					messageData: {
-						status: "OK"
-					}
-				}));
+				this._onMessageDeviceJoin(message.messageData);
 				break;
 
 			case "SESSION_JOIN":
-				if(this.deviceId == null) {
-					this.websocket.send(JSON.stringify({
-						messageType: "SESSION_JOIN",
-						messageData: {
-							status: "ERROR",
-							statusExtended: {
-								errorReason: "DEVICE_NOT_IDENTIFIED"
-							}
-						}
-					}));
-					return;
-				}
-
-				switch(message.messageData.authenticationType) {
-					case "sessionKey":
-						let sessionId = message.messageData.sessionId;
-						if(SessionsManager.existsSession(sessionId)) {
-							if(message.messageData.sessionKeys != null && message.messageData.sessionKeys.length == 2) {
-								let sessionKeyA = message.messageData.sessionKeys[0];
-								let sessionKeyB = message.messageData.sessionKeys[1];
-								let session = SessionsManager.getSession(sessionId);
-
-								if (session.checkAuthenticatorCode(sessionKeyA, sessionKeyB)) {
-									this.session = session;
-									this.session.addSessionClient(this);
-									this.websocket.send(JSON.stringify({
-										messageType: "SESSION_JOIN",
-										messageData: {
-											status: "OK",
-											statusExtended: {
-												"authenticationType": "sessionKey",
-												"sessionId": sessionId,
-												"sessionToken": SessionTokenManager.generateSessionToken(sessionId, this.deviceId)
-											}
-										}
-									}));
-								} else {
-									this.websocket.send(JSON.stringify({
-										messageType: "SESSION_JOIN",
-										messageData: {
-											status: "ERROR",
-											statusExtended: {
-												errorReason: "AUTHENTICATOR_CODE_EXPIRED"
-											}
-										}
-									}));
-								}
-							} else {
-								this.websocket.send(JSON.stringify({
-									messageType: "SESSION_JOIN",
-									messageData: {
-										status: "ERROR",
-										statusExtended: {
-											errorReason: "AUTHENTICATOR_CODE_INVALID"
-										}
-									}
-								}));
-							}
-						} else {
-							this.websocket.send(JSON.stringify({
-								messageType: "SESSION_JOIN",
-								messageData: {
-									status: "ERROR",
-									statusExtended: {
-										errorReason: "SESSION_EXPIRED"
-									}
-								}
-							}));
-						}
-						break;
-
-					case "sessionToken":
-						let sessionData = SessionTokenManager.retrieveSessionDevice(message.messageData.sessionToken);
-						if(sessionData != null) {
-							if(sessionData.deviceId == this.deviceId) {
-								if (SessionsManager.existsSession(sessionData.sessionId)) {
-									this.session = SessionsManager.getSession(sessionData.sessionId);
-									this.session.addSessionClient(this);
-									this.websocket.send(JSON.stringify({
-										messageType: "SESSION_JOIN",
-										messageData: {
-											status: "OK",
-											statusExtended: {
-												"authenticationType": "sessionToken",
-												"sessionId": sessionData.sessionId,
-												"sessionToken": message.messageData.sessionToken
-											}
-										}
-									}));
-								} else {
-									this.websocket.send(JSON.stringify({
-										messageType: "SESSION_JOIN",
-										messageData: {
-											status: "ERROR",
-											statusExtended: {
-												errorReason: "SESSION_EXPIRED"
-											}
-										}
-									}));
-								}
-							} else {
-								this.websocket.send(JSON.stringify({
-									messageType: "SESSION_JOIN",
-									messageData: {
-										status: "ERROR",
-										statusExtended: {
-											errorReason: "AUTHENTICATOR_CODE_INVALID"
-										}
-									}
-								}));
-							}
-						} else {
-							this.websocket.send(JSON.stringify({
-								messageType: "SESSION_JOIN",
-								messageData: {
-									status: "ERROR",
-									statusExtended: {
-										errorReason: "AUTHENTICATOR_CODE_INVALID"
-									}
-								}
-							}));
-						}
-						break;
-
-					default:
-						this.websocket.send(JSON.stringify({
-							messageType: "SESSION_JOIN",
-							messageData: {
-								status: "ERROR",
-								statusExtended: {
-									errorReason: "UNSUPPORTED_AUTHENTICATION_METHOD"
-								}
-							}
-						}));
-						break;
-				}
+				this._onMessageSessionJoin(message.messageData);
 				break;
 
 			case "SEND_QUESTION":
+				break;
+
+			case "QUESTION_WAITING":
+				if(this.session != null) {
+					this.session.sendCurrentQuestion(this);
+				}
+				break;
+		}
+	}
+
+	_send(message) {
+		console.log(message);
+		this.websocket.send(JSON.stringify(message));
+	}
+
+	_onMessageDeviceJoin(messageData) {
+		let deviceId = DeviceTokenManager.retrieveDeviceId(messageData.deviceToken);
+
+		if(deviceId == null) {
+			this._send({
+				messageType: "DEVICE_JOIN",
+				messageData: {
+					status: "ERROR",
+					statusExtended: {
+						errorReason: "DEVICE_TOKEN_INVALID"
+					}
+				}
+			});
+			return;
+		}
+
+		this.deviceId = deviceId;
+		this._send({
+			messageType: "DEVICE_JOIN",
+			messageData: {
+				status: "OK"
+			}
+		});
+	}
+
+	_onMessageSessionJoin(messageData) {
+		const sessionJoinFailure = function(failureReason) {
+			this._send({
+				messageType: "SESSION_JOIN",
+				messageData: {
+					status: "ERROR",
+					statusExtended: {
+						errorReason: failureReason
+					}
+				}
+			});
+		}.bind(this);
+
+		if(this.deviceId == null) {
+			sessionJoinFailure("DEVICE_NOT_IDENTIFIED");
+			return;
+		}
+
+		if(this.session != null) {
+			this.session.removeSessionClient(this);
+		}
+
+		switch(messageData.authenticationType) {
+			case "sessionKey":
+				let sessionId = messageData.sessionId;
+				if(!SessionsManager.existsSession(sessionId)) {
+					sessionJoinFailure("SESSION_EXPIRED");
+					return;
+				}
+
+
+				if(messageData.sessionKeys == null || messageData.sessionKeys.length != 2) {
+					sessionJoinFailure("AUTHENTICATOR_CODE_INVALID");
+					return;
+				}
+
+				let session = SessionsManager.getSession(sessionId);
+				let sessionKeyA = messageData.sessionKeys[0];
+				let sessionKeyB = messageData.sessionKeys[1];
+
+				if (!session.checkAuthenticatorCode(sessionKeyA, sessionKeyB)) {
+					sessionJoinFailure("AUTHENTICATOR_CODE_EXPIRED");
+					return;
+				}
+
+				this.session = session;
+				this.session.addSessionClient(this);
+				this._send({
+					messageType: "SESSION_JOIN",
+					messageData: {
+						status: "OK",
+						statusExtended: {
+							"authenticationType": "sessionKey",
+							"sessionId": sessionId,
+							"sessionToken": SessionTokenManager.generateSessionToken(sessionId, this.deviceId)
+						}
+					}
+				});
+				break;
+
+			case "sessionToken":
+				let sessionData = SessionTokenManager.retrieveSessionDevice(messageData.sessionToken);
+				if(sessionData == null || sessionData.deviceId != this.deviceId) {
+					sessionJoinFailure("AUTHENTICATOR_CODE_INVALID");
+					return;
+				}
+
+				if(!SessionsManager.existsSession(sessionData.sessionId)) {
+					sessionJoinFailure("SESSION_EXPIRED");
+					return;
+				}
+
+				this.session = SessionsManager.getSession(sessionData.sessionId);
+				this.session.addSessionClient(this);
+				this._send({
+					messageType: "SESSION_JOIN",
+					messageData: {
+						status: "OK",
+						statusExtended: {
+							"authenticationType": "sessionToken",
+							"sessionId": sessionData.sessionId,
+							"sessionToken": messageData.sessionToken
+						}
+					}
+				});
 				break;
 		}
 	}

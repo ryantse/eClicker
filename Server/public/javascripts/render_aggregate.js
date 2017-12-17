@@ -1,0 +1,3 @@
+function renderAggregateMultipleChoice(target, data) {
+
+}

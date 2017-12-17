@@ -1,35 +1,39 @@
-let booleanAnswerData = {
-	title: ""
+const addQuestion = $("#addQuestion");
+const questionTextarea = $("#questionTextarea");
+const submitTarget = $("#submitTarget").val();
+
+let questionData = {
+	"title": ""
 };
 
 function bindActions() {
-	const questionTextarea = jQuery("#questionTextarea");
-
 	questionTextarea.on("input", function() {
-		booleanAnswerData.title = questionTextarea.val();
+		questionData["title"] = questionTextarea.val();
 		checkCompletion();
 	});
 
-	jQuery("#addQuestion").on("click", function(event) {
+	addQuestion.on("click", function(event) {
 		event.preventDefault();
-		const submitError = jQuery("#submitError");
+		const submitError = $("#submitError");
 
 		submitError.empty();
 
-		jQuery.ajax({
-			method: "POST",
-			url: jQuery("#submitTarget").val(),
-			data: {
-				question_type: "BooleanAnswer",
-				question_title: booleanAnswerData.title,
-				question_data: JSON.stringify({})
+		$.ajax({
+			"method": "POST",
+			"url": submitTarget,
+			"data": {
+				"question_type": "BooleanAnswer",
+				"question_title": questionData["title"],
+				"question_data": "{}"
 			},
-			dataType: "JSON",
-			success: function(data) {
-				if(data.status == "OK") {
-					window.location = data.redirectTo;
+			"dataType": "JSON",
+			"success": function(data) {
+				if(data["status"] == "OK") {
+					window.location = data["redirectTo"];
 				} else {
-					submitError.append("<div class=\"alert alert-danger\" role=\"alert\"><b>Question Create Error</b> " + data.statusExtended + "</div>")
+					const submitErrorContent = $("<div class=\"alert alert-danger\" role=\"alert\"><b>Question Create Error</b> <span id=\"alertText\"></span></div>");
+					submitErrorContent.find("#alertText").text(data["statusExtended"]);
+					submitError.append(submitErrorContent);
 				}
 			}
 		});
@@ -37,8 +41,11 @@ function bindActions() {
 }
 
 function checkCompletion() {
-	jQuery("#addQuestion").prop("disabled", (jQuery.trim(booleanAnswerData.title).length == 0));
+	addQuestion.prop("disabled", ($.trim(questionData["title"]).length == 0));
 }
 
-bindActions();
-checkCompletion();
+$(document).ready(function() {
+	bindActions();
+
+	checkCompletion();
+});

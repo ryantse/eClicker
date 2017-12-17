@@ -31,6 +31,11 @@ class KeyManager {
 				fs.mkdirSync('./keys/');
 			}
 
+			// Generate random session key string.
+			this.sessionsKey = crypto.randomBytes(40).toString("hex").slice(0, 20);
+			fs.writeFileSync('./keys/sessions.key', this.sessionsKey);
+			console.log("Successfully generated sessions key.");
+
 			// Generate keys.
 			console.log("Generating 2048-bit RSA key-pair. One moment.");
 			forge.pki.rsa.generateKeyPair({bits: 2048, workers: 2}, function(error, keypair) {
@@ -49,11 +54,6 @@ class KeyManager {
 
 				console.log("Successfully generated RSA key-pair.");
 			}.bind(this));
-
-			// Generate random session key string.
-			this.sessionsKey = crypto.randomBytes(40).toString("hex").slice(0, 20);
-			fs.writeFileSync('./keys/sessions.key', this.sessionsKey);
-			console.log("Successfully generated sessions key.");
 		} else {
 			this.sessionsKey = fs.readFileSync('./keys/sessions.key', {encoding: "utf8"});
 			this.privateKey = fs.readFileSync('./keys/private.pem', {encoding: "utf8"});

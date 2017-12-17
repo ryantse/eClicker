@@ -1,3 +1,47 @@
 <resources>
     <string name="app_name">eClicker</string>
+    <string name="application_status">One moment please.</string>
+    <plurals name="application_status_connection_failed_retry">
+        <item quantity="one">Connection failure, retrying in 1 second.</item>
+        <item quantity="other">Connection failure, retrying in %d seconds.</item>
+    </plurals>
+    <string name="application_status_connection_failed">Failed to connect. Please try again later.</string>
+    <string name="application_status_retry">Retry</string>
+
+    <string name="menu_device_id">Device ID: %s</string>
+    <string name="menu_ask_question">Ask Question</string>
+    <string name="menu_session_exit">Exit Session</string>
+
+    <string name="answer_label">Answer</string>
+
+    <string name="toast_device_id_copied">Device ID copied to clipboard.</string>
+
+    <string name="permission_request_explanation">We need permission to access the camera for class login. Please press the button below to grant us permission to access your camera.</string>
+    <string name="permission_grant">Grant</string>
+
+    <string name="qr_scan_instructions">Hold your device up to the authentication code. You will automatically be redirected when you successfully join the class session.\n\nCamera not focused? Tap the screen to auto re-focus.</string>
+
+    <string name="session_id">Session ID: %s</string>
+    <string name="session_waiting_message">Waiting for Question.</string>
+
+    <string name="choice_number">%d. </string>
+
+    <string name="reconnect_message">Server Connection Lost.</string>
+
+    <string name="session_send_answer_result_success">Successfully recorded answer.</string>
+    <string name="session_send_answer_result_authenticator_error">An error occurred trying to authenticate your request. Please try again.</string>
+    <string name="session_send_answer_result_session_expired">The session seems to have ended before your answer could be sent.</string>
+    <string name="session_send_answer_result_question_closed">The question is no longer accepting answers.</string>
+    <string name="session_send_answer_result_internal_error">An internal error occurred. Please try again.</string>
+
+    <string name="session_ask_question_title">Ask Question</string>
+    <string name="session_ask_question">Send a question to the instructor.\n\nQuestions are sent with your device ID and are not recorded.</string>
+    <string name="session_ask_question_result_success">Successfully sent question to instructor.</string>
+    <string name="session_ask_question_result_authenticator_error">An error occurred trying to authenticate your request. Please try again.</string>
+    <string name="session_ask_question_result_session_expired">The session seems to have ended before the question could be sent.</string>
+    <string name="session_ask_question_result_educator_unavailable">The educator is not taking questions right now. Please try again later.</string>
+    <string name="session_ask_question_result_internal_error">An internal error occurred. Please try again.</string>
+
+    <string name="session_exit_confirm_title">Leave Session</string>
+    <string name="session_exit_confirm">Are you sure you want to leave this class session? You may not be able to join this session again later.</string>
 </resources>
