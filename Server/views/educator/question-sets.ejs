@@ -52,15 +52,21 @@
 					</tr>
 					</thead>
 					<tbody>
-					<% question_sets.forEach(function(question_set) {%>
+					<% if (question_sets.length > 0) {%>
+						<% question_sets.forEach(function(question_set) {%>
+							<tr>
+								<th scope="row" class="align-middle"><%= question_set.name %></th>
+								<td>
+									<a class="btn btn-primary" href="<%= baseUrl %>/question-set/<%= question_set.id %>">View</a>
+									<a class="btn btn-primary" href="<%= baseUrl %>/question-set/<%= question_set.id %>/sessions">Sessions</a>
+								</td>
+							</tr>
+						<% }); %>
+					<% } else { %>
 						<tr>
-							<th scope="row"><%= question_set.name %></th>
-							<td>
-								<a class="btn btn-primary" href="<%= baseUrl %>/question-set/<%= question_set.id %>/modify">Modify</a>
-								<a class="btn btn-primary" href="<%= baseUrl %>/question-set/<%= question_set.id %>/sessions">Sessions</a>
-							</td>
+							<th scope="row" colspan="2" class="text-center">To create a new question set, click "New Question Set" above.</th>
 						</tr>
-					<% }); %>
+					<% } %>
 					</tbody>
 				</table>
 			</div>

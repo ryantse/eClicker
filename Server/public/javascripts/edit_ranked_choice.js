@@ -6,6 +6,7 @@ const addModalAdd = $("#addModalAdd");
 const questionTextarea = $("#questionTextarea");
 const deleteModal = $("#deleteModal");
 const editModal = $("#editModal");
+const editModalSave = $("#editModalSave");
 const editModalText = $("#editModalText");
 const saveQuestion = $("#saveQuestion");
 const dataTarget = $("#dataTarget").val();
@@ -23,7 +24,7 @@ function renderChoices() {
 
 	if(questionData["question_data"]["choices"].length > 0) {
 		for(let i = (questionData["question_data"]["choices"].length - 1); i >= 0; --i) {
-			let choice = $("<li class=\"list-group-item align-items-center choice\"><i class=\"fa fa-bars mr-2 choice-handle\" aria-hidden=\"true\"></i><span id=\"choiceText\"></span><a href=\"#\" class=\"choice-delete float-right text-muted\"><i class=\"fa fa-trash\" aria-hidden=\"true\"></i></a><a href=\"#\" class=\"choice-edit float-right text-muted\"><i class=\"fa fa-pencil mr-2\" aria-hidden=\"true\"></i></a></li>");
+			let choice = $("<li class=\"list-group-item align-items-center choice\"><span id=\"choiceText\"></span><a href=\"#\" class=\"choice-delete float-right text-muted\"><i class=\"fa fa-trash\" aria-hidden=\"true\"></i></a><a href=\"#\" class=\"choice-edit float-right text-muted\"><i class=\"fa fa-pencil mr-2\" aria-hidden=\"true\"></i></a></li>");
 			choice.find("#choiceText").text(questionData["question_data"]["choices"][i]);
 			choice.data("choice-id", i);
 			choice.insertAfter(multipleChoiceAnswersHeader);
@@ -56,7 +57,18 @@ function bindActions() {
 		editModal.modal();
 	});
 
-	$("#editModalSave").on("click", function() {
+	editModalText.on("input", function() {
+		editModalSave.prop("disabled", !($(this).val().length > 0));
+	});
+
+	editModalText.keypress(function (event) {
+		if(event.which === 13) {
+			$("#editModalSave:enabled").click();
+			return false;
+		}
+	});
+
+	editModalSave.on("click", function() {
 		questionData["question_data"]["choices"][editModal.data("choice-id")] = editModalText.val();
 		editModal.modal("hide");
 
@@ -64,7 +76,7 @@ function bindActions() {
 	});
 
 	// Add Modal.
-	$("#choiceAdd").on("click", function() {
+	$(".choiceAdd").on("click", function() {
 		addModalText.val("");
 		addModalText.trigger("input");
 
@@ -73,6 +85,13 @@ function bindActions() {
 
 	addModalText.on("input", function() {
 		addModalAdd.prop("disabled", !($(this).val().length > 0));
+	});
+
+	addModalText.keypress(function (event) {
+		if(event.which === 13) {
+			$("#addModalAdd:enabled").click();
+			return false;
+		}
 	});
 
 	addModalAdd.on("click", function() {

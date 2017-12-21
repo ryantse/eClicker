@@ -20,7 +20,7 @@
 	</button>
 	<div class="collapse navbar-collapse justify-content-md-center" id="navBar">
 		<ul class="navbar-nav">
-			<li class="nav-item active">
+			<li class="nav-item">
 				<a class="nav-link" href="<%= baseUrl %>/question-sets/">Question Sets</a>
 			</li>
 			<li class="nav-item">
@@ -67,6 +67,12 @@
 					</thead>
 					<tbody>
 					<tr>
+						<th scope="row">Session Count</th>
+						<td>
+							<%= sessionCount %>
+						</td>
+					</tr>
+					<tr>
 						<th scope="row" class="align-middle">Actions</th>
 						<td>
 							<div class="btn-group">
@@ -85,7 +91,14 @@
 				</table>
 
 				<ul class="list-group mb-4" id="questionsList">
-					<li class="list-group-item list-group-item-dark no-sort"><strong>Questions</strong><br /><small>Drag to reorder questions.</small></li>
+					<li class="list-group-item list-group-item-dark no-sort">
+						<div class="float-left">
+							<strong>Questions</strong><br /><small>Drag to reorder questions.</small>
+						</div>
+						<div class="float-right">
+							<a href="<%= baseUrl %>/question-set/<%= questionSetId %>/modify/add" class="btn btn-primary">Add a Question</a>
+						</div>
+					</li>
 					<a href="<%= baseUrl %>/question-set/<%= questionSetId %>/modify/add" class="list-group-item no-sort active"><i class="fa fa-plus-circle mr-1" aria-hidden="true"></i> Add a Question</a>
 				</ul>
 

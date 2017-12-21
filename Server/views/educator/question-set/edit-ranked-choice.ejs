@@ -20,8 +20,8 @@
 	</button>
 	<div class="collapse navbar-collapse justify-content-md-center" id="navBar">
 		<ul class="navbar-nav">
-			<li class="nav-item active">
-				<a class="nav-link" href="<%= baseUrl %>/question-sets/">Question Sets</a>
+			<li class="nav-item">
+				<a class="nav-link" href="<%= baseUrl %>/question-set/<%= questionSetId %>">Back to Question Set</a>
 			</li>
 			<li class="nav-item">
 				<a class="nav-link" href="<%= baseUrl %>/question-set/create">New Question Set</a>
@@ -51,8 +51,15 @@
 						<textarea class="form-control" id="questionTextarea" rows="3"></textarea>
 					</div>
 					<ul class="list-group mb-4" id="multipleChoiceAnswers">
-						<li class="list-group-item list-group-item-dark no-sort multipleChoiceAnswersHeader"><strong>Choices</strong></li>
-						<a href="#" class="list-group-item no-sort active" id="choiceAdd"><i class="fa fa-plus-circle mr-1" aria-hidden="true"></i> Add an Option</a>
+						<li class="list-group-item list-group-item-dark no-sort multipleChoiceAnswersHeader">
+							<div class="float-left">
+								<strong>Choices</strong>
+							</div>
+							<div class="float-right">
+								<a href="#" class="btn btn-primary btn-sm choiceAdd">Add an Option</a>
+							</div>
+						</li>
+						<a href="#" class="list-group-item no-sort active choiceAdd"><i class="fa fa-plus-circle mr-1" aria-hidden="true"></i> Add an Option</a>
 					</ul>
 					<input type="hidden" id="dataTarget" value="<%= baseUrl %>/question-set/<%= questionSetId %>/modify/edit/<%= questionId %>" />
 					<button class="btn btn-primary btn-lg btn-block" type="button" id="saveQuestion">Save Question</button>

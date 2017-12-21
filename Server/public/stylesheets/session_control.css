@@ -8,29 +8,25 @@
 }
 
 .flex-item {
+	order: 0;
 	padding: 1rem;
+	align-self: stretch;
+	overflow-y: scroll;
+	height: calc(100vh - (51px + 1rem));
 }
 
 .flex-item:nth-child(1) {
-    order: 0;
     flex: 1 1 25%;
-    align-self: stretch;
-    height: calc(100vh - (51px + 1rem));
-    overflow-y: scroll;
+
 }
 
 .flex-item:nth-child(2) {
-    order: 0;
     flex: 2 0 50%;
-    align-self: stretch;
 }
 
 .flex-item:nth-child(3) {
     order: 0;
     flex: 1 1 25%;
-    align-self: stretch;
-    height: calc(100vh - (51px + 1rem));
-    overflow-y: scroll;
 }
 
 .question {

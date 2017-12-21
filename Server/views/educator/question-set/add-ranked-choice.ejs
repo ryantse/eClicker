@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<title>eClicker - New Multiple Choice Question</title>
+	<title>eClicker - New Ranked Choice Question</title>
 
 	<link rel="stylesheet"
 	      href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-beta.2/css/bootstrap.min.css"
@@ -20,8 +20,8 @@
 	</button>
 	<div class="collapse navbar-collapse justify-content-md-center" id="navBar">
 		<ul class="navbar-nav">
-			<li class="nav-item active">
-				<a class="nav-link" href="<%= baseUrl %>/question-sets/">Question Sets</a>
+			<li class="nav-item">
+				<a class="nav-link" href="<%= baseUrl %>/question-set/<%= questionSetId %>">Back to Question Set</a>
 			</li>
 			<li class="nav-item">
 				<a class="nav-link" href="<%= baseUrl %>/question-set/create">New Question Set</a>
@@ -51,8 +51,15 @@
 						<textarea class="form-control" id="questionTextarea" rows="3"></textarea>
 					</div>
 					<ul class="list-group mb-4" id="multipleChoiceAnswers">
-						<li class="list-group-item list-group-item-dark no-sort multipleChoiceAnswersHeader"><strong>Choices</strong></li>
-						<a href="#" class="list-group-item no-sort active" id="choiceAdd"><i class="fa fa-plus-circle mr-1" aria-hidden="true"></i> Add an Option</a>
+						<li class="list-group-item list-group-item-dark no-sort multipleChoiceAnswersHeader">
+							<div class="float-left">
+								<strong>Choices</strong>
+							</div>
+							<div class="float-right">
+								<a href="#" class="btn btn-primary btn-sm choiceAdd">Add an Option</a>
+							</div>
+						</li>
+						<a href="#" class="list-group-item no-sort active choiceAdd"><i class="fa fa-plus-circle mr-1" aria-hidden="true"></i> Add an Option</a>
 					</ul>
 					<input type="hidden" id="submitTarget" value="<%= baseUrl %>/question-set/<%= questionSetId %>/modify/add/question" />
 					<button class="btn btn-primary btn-lg btn-block" type="button" id="addQuestion">Add Question</button>

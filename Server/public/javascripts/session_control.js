@@ -81,9 +81,21 @@ function renderChart() {
 
 	if(aggregateChart == null) {
 		aggregateChart = new Chart(aggregateChartCanvas, {
-			type: 'horizontalBar',
-			data: aggregateChartData,
-			options: {}
+			"type": 'horizontalBar',
+			"data": aggregateChartData,
+			"options": {
+				"scales": {
+					"xAxes": [{
+						"ticks": {
+							"min": 0,
+							"stepSize": 1
+						}
+					}]
+				},
+				"legend": {
+					"display": false
+				}
+			}
 		});
 	}
 
@@ -92,8 +104,6 @@ function renderChart() {
 		"url": window.location.href.split('#')[0] + "/../aggregate-response/" + questionSetData[currentQuestionId]["id"],
 		"dataType": "JSON",
 		"success": function(data) {
-			console.log(data);
-
 			let dataSet = [];
 
 			aggregateChartData.labels.length = 0;
@@ -102,7 +112,6 @@ function renderChart() {
 				if(data.hasOwnProperty(answer)) {
 					aggregateChartData.labels.push(answer);
 					dataSet.push(data[answer]);
-					console.log(answer);
 				}
 			}
 
@@ -139,7 +148,7 @@ function bindActions() {
 	});
 
 	$("#endSession").on("click", function() {
-		// TODO: Make a request to close the session.
+		$("#endSessionModal").modal()
 	});
 }
 

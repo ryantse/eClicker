@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ConnectionManager implements WebSocketListener {
-    final static String serverHost = "10.0.0.6:3000";
+    final static String serverHost = "eclickerapp.com";
     private static final ArrayList<MessageListenerContainer> networkFailureListeners = new ArrayList<>();
     private static ConnectionManager connectionManager = null;
     private final WebSocket webSocket;
@@ -34,7 +34,7 @@ public class ConnectionManager implements WebSocketListener {
         }
 
         try {
-            this.webSocket = new WebSocketFactory().createSocket(new URI("ws://" + serverHost + "/mobile/session"), 3000);
+            this.webSocket = new WebSocketFactory().createSocket(new URI("wss://" + serverHost + "/mobile/session"), 3000);
             this.webSocket.connectAsynchronously();
             this.webSocket.addListener(this);
         } catch (Exception e) {

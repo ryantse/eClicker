@@ -273,7 +273,7 @@ public class SessionManager {
                             requestParams.put("question", askQuestionInput.getText());
 
                             AsyncHttpClient client = new AsyncHttpClient();
-                            client.post("http://" + ConnectionManager.serverHost + "/mobile/session/ask-question", requestParams, new JsonHttpResponseHandler() {
+                            client.post("https://" + ConnectionManager.serverHost + "/mobile/session/ask-question", requestParams, new JsonHttpResponseHandler() {
                                 @Override
                                 public void onSuccess(int statusCode, Header[] headers, JSONObject jsonObject) {
                                     try {
@@ -390,7 +390,7 @@ public class SessionManager {
             requestParams.put("answerData", answerData.toString());
 
             AsyncHttpClient client = new AsyncHttpClient();
-            client.post("http://" + ConnectionManager.serverHost + "/mobile/session/record-answer", requestParams, new JsonHttpResponseHandler() {
+            client.post("https://" + ConnectionManager.serverHost + "/mobile/session/record-answer", requestParams, new JsonHttpResponseHandler() {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, JSONObject jsonObject) {
                     try {

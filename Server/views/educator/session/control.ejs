@@ -28,66 +28,67 @@
 				<a class="nav-link" href="#" id="showAuthenticator">Show Authenticator</a>
 			</li>
 			<li class="nav-item">
-				<a class="nav-link" href="<%= baseUrl %>/session/<%= sessionId %>/end">End Session</a>
+				<a class="nav-link" href="#" id="endSession">End Session</a>
 			</li>
 		</ul>
 	</div>
 </nav>
-    <div class="flex-container">
-        <div class="flex-item">
-        	<h3>Question Set</h3>
-        	<ul class="list-group mb-4" id="questionsList">
-				<li class="list-group-item list-group-item-dark no-sort"><strong>Questions</strong><br /><small>Select a question to send to students.</small></li>
-			</ul>
-        </div>
-        <div class="flex-item">
-        	<div class="clearfix mb-4">
-        		<h3 class="float-left">Current Question</h3>
-        		<button class="btn btn-primary float-right" id="endQuestion" disabled="disabled">End Question</button>
-        	</div>
-	        <div id="currentQuestion"></div>
-	        <canvas id="currentQuestionAggregate"></canvas>
-        </div>
-        <div class="flex-item">
-	        <div class="clearfix mb-4">
-		        <h3 class="float-left">Incoming Questions</h3>
-		        <button class="btn btn-primary float-right" id="clearIncoming">Clear All</button>
-	        </div>
-	        <div id="incomingQuestions"></div>
-        </div>
+<div class="flex-container">
+    <div class="flex-item">
+        <h4>Question Set</h4>
+        <ul class="list-group mb-4" id="questionsList">
+			<li class="list-group-item list-group-item-dark no-sort"><strong>Questions</strong><br /><small>Select a question to send to students.</small></li>
+		</ul>
     </div>
-	<div class="modal" tabindex="-1" role="dialog" id="connectionLostModal" data-backdrop="static" data-keyboard="false">
-		<div class="modal-dialog" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title">Connection Lost</h5>
-				</div>
-				<div class="modal-body">
-					Connection to the server was lost. To reconnect to the current session, press reconnect below.
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-primary" id="connectionLostModalReconnect">Reconnect</button>
-				</div>
+    <div class="flex-item">
+        <div class="clearfix mb-4">
+            <h4 class="float-left">Current Question</h4>
+            <button class="btn btn-primary btn-sm float-right" id="endQuestion" disabled="disabled">End Question</button>
+        </div>
+        <div id="currentQuestion"></div>
+        <canvas id="currentQuestionAggregate"></canvas>
+    </div>
+    <div class="flex-item">
+        <div class="clearfix mb-4">
+	        <h4 class="float-left">Incoming Questions</h4>
+	        <button class="btn btn-primary btn-sm float-right" id="clearIncoming">Clear</button>
+        </div>
+        <div id="incomingQuestions"></div>
+    </div>
+</div>
+<div class="modal" tabindex="-1" role="dialog" id="endSessionModal" data-backdrop="true">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">End Session</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<p>Are you sure you want to end this session?</p>
+				<p><small><em>Students currently signed in to the session will be logged out.</em></small></p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+				<form method="post" action="<%= baseUrl %>/session/<%= sessionId %>/end">
+					<button type="submit" class="btn btn-danger" id="endSessionModalConfirm">End Session</button>
+				</form>
 			</div>
 		</div>
 	</div>
-	<div class="modal" tabindex="-1" role="dialog" id="endSessionModal">
-		<div class="modal-dialog" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title">End Session</h5>
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
-				</div>
-				<div class="modal-body">
-					<p>Are you sure you want to end this session?</p>
-					<p><small><em>Students currently signed in to the session will be logged out.</em></small></p>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-					<button type="button" class="btn btn-danger" id="endSessionModalConfirm">End Session</button>
-				</div>
+</div>
+<div class="modal" tabindex="-1" role="dialog" id="connectionLostModal" data-backdrop="static" data-keyboard="false">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Connection Lost</h5>
+			</div>
+			<div class="modal-body">
+				Connection to the server was lost. To reconnect to the current session, press reconnect below.
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary" id="connectionLostModalReconnect">Reconnect</button>
 			</div>
 		</div>
 	</div>

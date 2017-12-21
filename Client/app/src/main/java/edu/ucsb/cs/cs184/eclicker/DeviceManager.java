@@ -82,7 +82,7 @@ public class DeviceManager {
 
     private void registerDevice() {
         SyncHttpClient syncHttpClient = new SyncHttpClient();
-        syncHttpClient.get("http://" + ConnectionManager.serverHost + "/mobile/register-device", new JsonHttpResponseHandler() {
+        syncHttpClient.get("https://" + ConnectionManager.serverHost + "/mobile/register-device", new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 super.onSuccess(statusCode, headers, response);

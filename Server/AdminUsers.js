@@ -1,6 +1,6 @@
 const users = {
 	"admin": "secret",
-	"ryan": "rt"
+	"demo": "demo"
 };
 
 module.exports = users;

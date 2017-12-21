@@ -6,6 +6,7 @@ const addModalAdd = $("#addModalAdd");
 const questionTextarea = $("#questionTextarea");
 const deleteModal = $("#deleteModal");
 const editModal = $("#editModal");
+const editModalSave = $("#editModalSave");
 const editModalText = $("#editModalText");
 const addQuestion = $("#addQuestion");
 const submitTarget = $("#submitTarget").val();
@@ -55,7 +56,18 @@ function bindActions() {
 		editModal.modal();
 	});
 
-	$("#editModalSave").on("click", function() {
+	editModalText.on("input", function() {
+		editModalSave.prop("disabled", !($(this).val().length > 0));
+	});
+
+	editModalText.keypress(function (event) {
+		if(event.which === 13) {
+			$("#editModalSave:enabled").click();
+			return false;
+		}
+	});
+
+	editModalSave.on("click", function() {
 		questionData["question_data"]["choices"][editModal.data("choice-id")] = editModalText.val();
 		editModal.modal("hide");
 
@@ -63,7 +75,7 @@ function bindActions() {
 	});
 
 	// Add Modal.
-	$("#choiceAdd").on("click", function() {
+	$(".choiceAdd").on("click", function() {
 		addModalText.val("");
 		addModalText.trigger("input");
 
@@ -72,6 +84,13 @@ function bindActions() {
 
 	addModalText.on("input", function() {
 		addModalAdd.prop("disabled", !($(this).val().length > 0));
+	});
+
+	addModalText.keypress(function (event) {
+		if(event.which === 13) {
+			$("#addModalAdd:enabled").click();
+			return false;
+		}
 	});
 
 	addModalAdd.on("click", function() {

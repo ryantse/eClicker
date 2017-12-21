@@ -121,6 +121,10 @@ router.post("/question-set/create", authenticationRequired, function(req, res) {
 	}
 });
 
+router.get("/question-set/:questionSetId", function(req, res) {
+	res.redirect(req["baseUrl"] + "/question-set/" + req["params"]["questionSetId"] + "/modify");
+});
+
 router.post("/question-set/:questionSetId/delete", authenticationRequired, function(req, res, next) {
 	try {
 		let databaseResult = database.query("SELECT questionset_owner FROM question_set WHERE questionset_id = ?", [req["params"]["questionSetId"]]);
@@ -152,7 +156,12 @@ router.get("/question-set/:questionSetId/modify", authenticationRequired, functi
 			return;
 		}
 
-		res.render("educator/question-set/modify", {"baseUrl": req["baseUrl"], "questionSetId": req["params"]["questionSetId"], "setName": databaseResult[0]["questionset_name"]});
+		let questionSetName = databaseResult[0]["questionset_name"];
+
+		databaseResult = database.query("SELECT COUNT(*) as session_count FROM session WHERE session_questionset = ?", [req["params"]["questionSetId"]]);
+		let sessionCount = databaseResult[0]["session_count"];
+
+		res.render("educator/question-set/modify", {"baseUrl": req["baseUrl"], "questionSetId": req["params"]["questionSetId"], "setName": questionSetName, "sessionCount": sessionCount});
 	} catch (error) {
 		console.log(error);
 
@@ -704,6 +713,9 @@ router.get("/session/:sessionId", authenticationRequired, function(req, res, nex
 		let sessionStartTime = dateformat(databaseResult[0]["session_starttime"], "mm/dd/yyyy h:MM:ss TT");
 		let sessionEndTime = (databaseResult[0]["session_endtime"] != null) ? dateformat(databaseResult[0]["session_endtime"], "mm/dd/yyyy h:MM:ss TT") : null;
 
+		databaseResult = database.query("SELECT questionset_name FROM question_set WHERE questionset_id = ?", [questionSetId]);
+		let questionSetName = databaseResult[0]["questionset_name"];
+
 		databaseResult = database.query("SELECT COUNT(DISTINCT(response_device)) as total_students FROM response WHERE response_session = ?", [req["params"]["sessionId"]]);
 		let totalStudents = databaseResult[0]["total_students"];
 
@@ -711,6 +723,7 @@ router.get("/session/:sessionId", authenticationRequired, function(req, res, nex
 			"baseUrl": req["baseUrl"],
 			"sessionId": req["params"]["sessionId"],
 			"questionSetId": questionSetId,
+			"questionSetName": questionSetName,
 			"startTime": sessionStartTime,
 			"endTime": sessionEndTime,
 			"totalStudents": totalStudents
@@ -833,7 +846,7 @@ router.get("/session/:sessionId/control", authenticationRequired, function(req, 
 	}
 });
 
-router.get("/session/:sessionId/end", authenticationRequired, function(req, res, next) {
+router.post("/session/:sessionId/end", authenticationRequired, function(req, res, next) {
 	try {
 		let databaseResult = database.query("SELECT session_owner FROM session WHERE session_id = ?", [req["params"]["sessionId"]]);
 		if (databaseResult.length === 0 || databaseResult[0]["session_owner"] !== req["user"]) {
